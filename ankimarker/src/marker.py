@@ -1,4 +1,5 @@
 import re
+import xml
 from typing import List
 
 import markdown
@@ -14,13 +15,11 @@ class Defaults:
     tag_close = f"</{tag_name}>"
 
 
-class AnkiMarker:
-    def __init__(self, config: dict):
+class Marker:
+    def __init__(self, addon) -> None:
 
-        self._config = config
-
-        marker_extention = Marker(config=self._config)
-        unmarker_extention = UnMarker(config=self._config)
+        marker_extention = MarkerExtension(addon=addon)
+        unmarker_extention = UnMarkerExtension(addon=addon)
 
         self._marker = markdown.Markdown(extensions=[marker_extention])
         self._unmarker = markdown.Markdown(extensions=[unmarker_extention])
@@ -43,17 +42,10 @@ class AnkiMarker:
         return string
 
 
-class BaseMarker(Extension):
-    def __init__(self, config) -> None:
-        self._config = config
+class BaseMarkerExtension(Extension):
+    def __init__(self, addon) -> None:
 
-    @property
-    def _parent_classnames(self) -> List[str]:
-        return self._config.get("parent_classnames", [])
-
-    @property
-    def _styles(self) -> List[dict]:
-        return self._config.get("styles", [{}])
+        self._addon = addon
 
     def _setup_markdown(self, md) -> None:
 
@@ -69,34 +61,24 @@ class BaseMarker(Extension):
 
         # Register single paragraph block processor.
         md.parser.blockprocessors.register(
-            item=ParagraphProcessor(md.parser), name="paragraph", priority=1110
+            item=ParagraphBlockProcessor(md.parser), name="paragraph", priority=1110
         )
 
     def _register_markdown_patterns(
         self, md: markdown.core.Markdown, PatternType: Pattern
     ):
 
-        if not self._styles:
-            return
-
-        for style in self._styles:
-
-            name = style.get("name", None)
-            markup = style.get("markup", None)
-            classname = style.get("classname", None)
-
-            if not all([name, markup, classname]):
-                continue
+        for (name, markup, classname) in self._addon.styles:
 
             pattern = self._compile_pattern(markup=markup)
-            classnames = [*self._parent_classnames, classname]
+            classnames = [*self._addon.parent_classnames, classname]
 
             item = PatternType(pattern=pattern, tag="span", classnames=classnames)
 
             md.inlinePatterns.register(item=item, name=name, priority=0)
 
     def _compile_pattern(self, markup: str) -> str:
-        """ TODO: Document.
+        """ TODO: Document this...
 
         I'm so sorry. This prevents text marked with `~` from having
         overlapping matches with those with `~~`.
@@ -137,19 +119,19 @@ class BaseMarker(Extension):
         return fr"(?<!{m0}){mf}(?!{m0})([^{m0}]*?){mf}(?!{m0})"
 
 
-class Marker(BaseMarker):
-    def extendMarkdown(self, md: markdown.core.Markdown, md_globals: dict) -> None:
+class MarkerExtension(BaseMarkerExtension):
+    def extendMarkdown(self, md: markdown.core.Markdown) -> None:
         self._setup_markdown(md=md)
         self._register_markdown_patterns(md=md, PatternType=PatternMarked)
 
 
-class UnMarker(BaseMarker):
-    def extendMarkdown(self, md: markdown.core.Markdown, md_globals: dict) -> None:
+class UnMarkerExtension(BaseMarkerExtension):
+    def extendMarkdown(self, md: markdown.core.Markdown) -> None:
         self._setup_markdown(md=md)
         self._register_markdown_patterns(md=md, PatternType=PatternUnMarked)
 
 
-class PatternMarked(markdown.inlinepatterns.Pattern):
+class PatternMarked(Pattern):
     def __init__(self, pattern: str, tag: str, classnames: str, **kwargs) -> None:
         super().__init__(pattern)
 
@@ -160,7 +142,7 @@ class PatternMarked(markdown.inlinepatterns.Pattern):
 
         classnames = " ".join(self._classnames)
 
-        element = markdown.util.etree.Element(self._tag)
+        element = xml.etree.ElementTree.Element(self._tag)
         element.text = match.group(2)
         element.set("class", classnames)
 
@@ -175,7 +157,7 @@ class PatternUnMarked(Pattern):
         return match.group(2)
 
 
-class ParagraphProcessor(BlockProcessor):
+class ParagraphBlockProcessor(BlockProcessor):
     def test(self, parent, block):
         return True
 
@@ -186,41 +168,5 @@ class ParagraphProcessor(BlockProcessor):
         if not block.strip():
             return
 
-        p = markdown.util.etree.SubElement(parent, Defaults.tag_name)
+        p = xml.etree.ElementTree.SubElement(parent, Defaults.tag_name)
         p.text = block.lstrip()
-
-
-if __name__ == "__main__":
-
-    CONFIG = {
-        "parent_classnames": ["marker"],
-        "styles": [
-            {"name": "Accent", "markup": "*", "classname": "accent"},
-            {"name": "Bold", "markup": "**", "classname": "bold"},
-            {"name": "Highlight", "markup": "==", "classname": "highlight"},
-            {"name": "Masculine", "markup": "++", "classname": "masculine"},
-            {"name": "Feminine", "markup": "~~", "classname": "feminine"},
-        ],
-    }
-
-    marker = AnkiMarker(config=CONFIG)
-
-    print()
-    print(
-        marker.mark(
-            """
-            This is a ~~sentence~~ that has *many* words that are **modified** with ==custom== ++markdown++!\n
-            What happens if we add a second paragraph after a line-break. And some extra text.
-            """
-        )
-    )
-    print()
-    print(
-        marker.unmark(
-            """
-            This is a ~~sentence~~ that has *many* words that are **modified** with ==custom== ++markdown++!\n
-            What happens if we add a second paragraph after a line-break. And some extra text.
-            """
-        )
-    )
-    print()
