@@ -81,7 +81,7 @@ class AnkiMarker:
 
     @property
     def parent_classnames(self) -> List[str]:
-        return self._config.get("parent_classnames", [])
+        return self._config.get("parent-classnames", [])
 
     @property
     def styles(self) -> Iterator[Tuple[str, str, str]]:

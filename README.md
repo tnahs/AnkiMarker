@@ -28,7 +28,7 @@ anki-marker .highlight {
 # [addon-dir]/user_files/markers.json
 
 {
-    "parent_classnames": [],
+    "parent-classnames": [],
     "styles": [
         {
             "name": "Highlight",

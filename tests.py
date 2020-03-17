@@ -8,7 +8,7 @@ from ankimarker.src import AnkiMarker, errors
 class TestAddon(object):
 
     config = {
-        "parent_classnames": [],
+        "parent-classnames": [],
         "styles": [
             {"name": "Style0", "markup": "*", "classname": "style0"},
             {"name": "Style1", "markup": "**", "classname": "style1"},
