@@ -1,40 +1,40 @@
 # anki-marker
 
-<!-- TODO: Doument example... -->
+<!-- TODO: Document example... -->
 
 
 ``` css
 
-/* [addon-dir]/user_files/user.css */
+/* [addon-dir]/user_files/markers.css */
 
-anki-marker .accent {
+anki-marker .highlight {
 
     /**
-    * accent
-    * *abc*
-    * <span class="accent">abc</span>
+    * highlight
+    * ==abc==
+    * <span class="highlight">abc</span>
     */
 
-    color: hsla(230, 60%, 70%, 1.0);
+    color: hsla(35, 100%, 45%, 1.0);
     font-style: unset;
-    font-weight: 400;
+    font-weight: unset;
     text-decoration: unset;
-    background-color: unset;
+    background-color: hsla(45, 100%, 75%, 1.0);
 }
 ```
 
-``` json
+``` python
 
-// [addon-dir]/user_files/styles.json
+# [addon-dir]/user_files/markers.json
 
 {
     "parent_classnames": [],
     "styles": [
         {
-            "name": "Accent",
-            "markup": "*",
-            "classname": "accent"
-        }
+            "name": "Highlight",
+            "markup": "==",
+            "classname": "highlight"
+        },
     ]
 }
 ```

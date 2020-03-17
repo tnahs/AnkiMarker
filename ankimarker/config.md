@@ -1,1 +1,1 @@
-Customize AnkiMarker with `styles.json` and `styles.css` in `[addon-dir]/user_files/`
+Customize AnkiMarker with `markers.json` and `markers.css` in `[addon-dir]/user_files/`.

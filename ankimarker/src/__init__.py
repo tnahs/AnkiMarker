@@ -12,7 +12,7 @@ class AnkiMarker:
 
     main_root = pathlib.Path(__file__).parent.parent
     user_root = main_root / "user_files"
-    config_path = user_root / "styles.json"
+    config_path = user_root / "markers.json"
 
     # Add-ons may expose their own web assets by utilizing
     # aqt.addons.AddonManager.setWebExports(). Web exports registered
@@ -21,7 +21,7 @@ class AnkiMarker:
     # via https://github.com/ankitects/anki/blob/3d7f643184cf9625293a397e1a73109659b77734/qt/aqt/webview.py#L132
     web_export_root = pathlib.Path("/_addons")
     main_css_path = web_export_root / main_root.name / "main.css"
-    user_css_path = web_export_root / main_root.name / user_root.name / "styles.css"
+    user_css_path = web_export_root / main_root.name / user_root.name / "markers.css"
 
     _config: dict = {}
 
@@ -43,17 +43,17 @@ class AnkiMarker:
                 with open(self.config_path, "r") as f:
                     config = json.load(f)
             except FileNotFoundError:
-                raise errors.ConfigError("Missing `styles.json`.")
+                raise errors.ConfigError("Missing `markers.json`.")
             except json.JSONDecodeError:
-                raise errors.ConfigError("Cannot read `styles.json`.")
+                raise errors.ConfigError("Cannot read `markers.json`.")
 
         if not config:
-            raise errors.ConfigError("Nothing set in `styles.json`.")
+            raise errors.ConfigError("Nothing set in `markers.json`.")
 
         styles = config.get("styles", None)
 
         if styles is None:
-            raise errors.ConfigError("Missing `styles` in `styles.json`.")
+            raise errors.ConfigError("Missing `styles` in `markers.json`.")
 
         for style in styles:
 
