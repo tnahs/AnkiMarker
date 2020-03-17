@@ -1,14 +1,13 @@
+import pathlib
+
 import pytest
 
-from ankimarker.src.addon import Addon
-from ankimarker.src.errors import ConfigError
+from ankimarker.src import AnkiMarker, errors
 
 
 class TestAddon(object):
-    # TODO: Doument tests...
 
     config = {
-        "add_context_menu": True,
         "parent_classnames": [],
         "styles": [
             {"name": "Style0", "markup": "*", "classname": "style0"},
@@ -18,72 +17,141 @@ class TestAddon(object):
         ],
     }
 
-    marked = "*abcd* **abcd** ~abcd~ ~~abcd~~"
-    unmarked = "abcd abcd abcd abcd"
-    as_html = " ".join(
-        [
-            '<anki-marker><span class="style0">abcd</span>',
-            '<span class="style1">abcd</span>',
-            '<span class="style3">abcd</span>',
-            '<span class="style4">abcd</span></anki-marker>',
-        ]
-    )
+    def test_config_missing(self) -> None:
 
-    def test_config(self):
+        # When running in Anki, `<AnkiMarker>` is not instantiated with a
+        # `config` but reads `config.json` from  the addon directory. This path
+        # is stored as a class variable in `<AnkiMarker>.config_path`. We
+        # simulate a missing file by monkey-patching `config_path`.
+        AnkiMarker.config_path = pathlib.Path("/missing/path/to/styles.json")
 
-        with pytest.raises(ConfigError):
-            Addon(config=[])
+        with pytest.raises(errors.ConfigError):
+            AnkiMarker()
 
-        with pytest.raises(ConfigError):
-            Addon(config={})
+    def test_config_empty(self) -> None:
 
-        #
+        with pytest.raises(errors.ConfigError):
+            AnkiMarker(config=[])
 
-        bad_config = self.config.copy()
+        with pytest.raises(errors.ConfigError):
+            AnkiMarker(config={})
 
-        #
+    def test_config_missing_styles(self) -> None:
 
-        bad_config["styles"] = []
+        # Missing `styles`.
+        bad_config: dict = {}
+        with pytest.raises(errors.ConfigError):
+            AnkiMarker(config=bad_config)
 
-        with pytest.raises(ConfigError):
-            Addon(config=bad_config)
+    def test_config_bad_styles(self) -> None:
 
-        #
+        bad_config: dict = {}
 
-        del bad_config["styles"]
-
-        with pytest.raises(ConfigError):
-            Addon(config=bad_config)
-
-        #
-
+        # Config with style missing `name`.
         bad_config["styles"] = [
-            {"markup": "*", "classname": "style-bad"},
+            {"markup": "*", "classname": "bad-style"},
         ]
+        with pytest.raises(errors.ConfigError):
+            AnkiMarker(config=bad_config)
 
-        with pytest.raises(ConfigError):
-            Addon(config=bad_config)
-
+        # Config with style missing `markup`.
         bad_config["styles"] = [
-            {"name": "StyleBad", "classname": "style-bad"},
+            {"name": "BadStyle", "classname": "bad-style"},
         ]
+        with pytest.raises(errors.ConfigError):
+            AnkiMarker(config=bad_config)
 
-        with pytest.raises(ConfigError):
-            Addon(config=bad_config)
-
+        # Config with style missing `classname`.
         bad_config["styles"] = [
-            {"name": "StyleBad", "markup": "*"},
+            {"name": "BadStyle", "markup": "*"},
         ]
+        with pytest.raises(errors.ConfigError):
+            AnkiMarker(config=bad_config)
 
-        with pytest.raises(ConfigError):
-            Addon(config=bad_config)
+    def test_config_bad_style_markup(self) -> None:
 
-    def test_marker(self):
+        bad_config: dict = {}
 
-        addon = Addon(config=self.config)
+        # Config with no `markup` character(s).
+        bad_config["styles"] = [
+            {"name": "BadStyle", "markup": "", "classname": "bad-style"},
+        ]
+        with pytest.raises(errors.ConfigError):
+            AnkiMarker(config=bad_config)
 
-        as_html = addon._marker.mark(string=self.marked)
-        unmarked = addon._marker.unmark(string=self.marked)
+        # Config with invalid `markup` character(s).
+        bad_config["styles"] = [
+            {"name": "BadStyle", "markup": "&", "classname": "bad-style"},
+        ]
+        with pytest.raises(errors.ConfigError):
+            AnkiMarker(config=bad_config)
 
-        assert as_html == self.as_html
-        assert unmarked == self.unmarked
+        # Config with invalid `markup` syntax.
+        bad_config["styles"] = [
+            {"name": "BadStyle", "markup": "@#", "classname": "bad-style"},
+        ]
+        with pytest.raises(errors.ConfigError):
+            AnkiMarker(config=bad_config)
+
+    def test_marker(self) -> None:
+
+        addon = AnkiMarker(config=self.config)
+
+        base_marked = "*abcd* **abcd** ~abcd~ ~~abcd~~"
+        base_unmarked = "abcd abcd abcd abcd"
+        _base_rendered = " ".join(
+            [
+                '<span class="style0">abcd</span>',
+                '<span class="style1">abcd</span>',
+                '<span class="style3">abcd</span>',
+                '<span class="style4">abcd</span>',
+            ]
+        )
+        base_rendered = f"<anki-marker>{_base_rendered}</anki-marker>"
+
+        #
+
+        assert base_rendered == addon._marker.render(string=base_marked)
+        assert base_unmarked == addon._marker.unmark(string=base_marked)
+
+    def test_marked_with_tags(self) -> None:
+
+        addon = AnkiMarker(config=self.config)
+
+        tags_marked = "*abcd* <div><p><strong>abc</strong></p></div> *abcd*"
+        tags_unmarked = "abcd <div><p><strong>abc</strong></p></div> abcd"
+        _tags_rendered = " ".join(
+            [
+                '<span class="style0">abcd</span>',
+                "<div><p><strong>abc</strong></p></div>",
+                '<span class="style0">abcd</span>',
+            ]
+        )
+        tags_rendered = f"<anki-marker>{_tags_rendered}</anki-marker>"
+
+        #
+
+        assert tags_rendered == addon._marker.render(string=tags_marked)
+        assert tags_unmarked == addon._marker.unmark(string=tags_marked)
+
+    def test_marked_entities(self) -> None:
+
+        addon = AnkiMarker(config=self.config)
+
+        entity_marked = "*abcd* *&amp;* *&#38;* *&#x26;* *abcd*"
+        entity_unmarked = "abcd &amp; &#38; &#x26; abcd"
+        _entity_rendered = " ".join(
+            [
+                '<span class="style0">abcd</span>',
+                '<span class="style0">&amp;</span>',
+                '<span class="style0">&#38;</span>',
+                '<span class="style0">&#x26;</span>',
+                '<span class="style0">abcd</span>',
+            ]
+        )
+        entity_rendered = f"<anki-marker>{_entity_rendered}</anki-marker>"
+
+        #
+
+        assert entity_rendered == addon._marker.render(string=entity_marked)
+        assert entity_unmarked == addon._marker.unmark(string=entity_marked)

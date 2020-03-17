@@ -1,12 +1,19 @@
 import sys
 
-from .src import addon, errors
+from .src import AnkiMarker, errors
 
 
 try:
-    anki_marker = addon.Addon()
+    addon = AnkiMarker()
 except errors.ConfigError as error:
-    # TODO: Document when/why errors are raised and what it prevents.
-    sys.stderr.write(f"{anki_marker.name}: {error}")
+    # Prevents AnkiMarker from hooking to Anki if there are any config errors.
+    # See `../tests.py` and `ankimark.src.AnkiMarker._validate_config()`
+    sys.stderr.write(f"{AnkiMarker.name}: {error}")
 else:
-    anki_marker.setup()
+
+    try:
+        addon.setup()
+    except ImportError:
+        # Anki is not currently running. Tests are being run. Prevents
+        # AnkiMarker from hooking to Anki if Anki is not running.
+        pass

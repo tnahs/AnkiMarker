@@ -1,6 +1,5 @@
 import re
 import xml
-from typing import List
 
 import markdown
 from markdown.blockprocessors import BlockProcessor
@@ -24,10 +23,14 @@ class Marker:
         self._marker = markdown.Markdown(extensions=[marker_extention])
         self._unmarker = markdown.Markdown(extensions=[unmarker_extention])
 
-    def mark(self, string) -> str:
+    def render(self, string) -> str:
         return self._marker.convert(source=string)
 
+    def mark(self, string, markup) -> str:
+        return f"{markup}{string}{markup}"
+
     def unmark(self, string) -> str:
+        # FIXME: Leading spaces are lost: " *abc*" gets unmarked to "abc"
 
         unmarked = self._unmarker.convert(source=string)
 
@@ -49,9 +52,13 @@ class BaseMarkerExtension(Extension):
 
     def _setup_markdown(self, md) -> None:
 
-        # Deregister all default inline patterns.
+        # Deregister all but `html` inline patterns.
         inline_patterns = list(md.inlinePatterns._data.keys())
         for pattern in inline_patterns:
+
+            if pattern == "html":
+                continue
+
             md.inlinePatterns.deregister(pattern)
 
         # Deregister all default block processor.
@@ -61,7 +68,7 @@ class BaseMarkerExtension(Extension):
 
         # Register single paragraph block processor.
         md.parser.blockprocessors.register(
-            item=ParagraphBlockProcessor(md.parser), name="paragraph", priority=1110
+            item=ParagraphBlockProcessor(md.parser), name="paragraph", priority=0
         )
 
     def _register_markdown_patterns(
@@ -138,7 +145,7 @@ class PatternMarked(Pattern):
         self._tag = tag
         self._classnames = classnames
 
-    def handleMatch(self, match: re.Match):
+    def handleMatch(self, match: re.Match) -> xml.etree.ElementTree.Element:
 
         classnames = " ".join(self._classnames)
 
@@ -153,15 +160,15 @@ class PatternUnMarked(Pattern):
     def __init__(self, pattern: str, **kwargs) -> None:
         super().__init__(pattern)
 
-    def handleMatch(self, match: re.Match):
+    def handleMatch(self, match: re.Match) -> str:
         return match.group(2)
 
 
 class ParagraphBlockProcessor(BlockProcessor):
-    def test(self, parent, block):
+    def test(self, parent, block) -> bool:
         return True
 
-    def run(self, parent, blocks):
+    def run(self, parent, blocks) -> None:
 
         block = blocks.pop(0)
 

@@ -1,0 +1,30 @@
+{
+    "parent_classnames": [],
+    "styles": [
+        {
+            "name": "Accent",
+            "markup": "*",
+            "classname": "accent"
+        },
+        {
+            "name": "Bold",
+            "markup": "**",
+            "classname": "bold"
+        },
+        {
+            "name": "Highlight",
+            "markup": "==",
+            "classname": "highlight"
+        },
+        {
+            "name": "Masculine",
+            "markup": "++",
+            "classname": "masculine"
+        },
+        {
+            "name": "Feminine",
+            "markup": "~~",
+            "classname": "feminine"
+        }
+    ]
+}

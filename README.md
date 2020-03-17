@@ -1,11 +1,11 @@
 # anki-marker
 
-<!-- TODO: Doument example -->
+<!-- TODO: Doument example... -->
 
-
-In `[addon-dir]/user_files/user.css`...
 
 ``` css
+
+/* [addon-dir]/user_files/user.css */
 
 anki-marker .accent {
 
@@ -15,20 +15,19 @@ anki-marker .accent {
     * <span class="accent">abc</span>
     */
 
-    color: hsla(230, 60%, 70%, 1.0);;
+    color: hsla(230, 60%, 70%, 1.0);
     font-style: unset;
     font-weight: 400;
     text-decoration: unset;
     background-color: unset;
 }
-
 ```
 
-In `[addon-dir]/config.json`...
-
 ``` json
+
+// [addon-dir]/user_files/styles.json
+
 {
-    "add_context_menu": true,
     "parent_classnames": [],
     "styles": [
         {
