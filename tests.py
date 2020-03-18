@@ -20,8 +20,8 @@ class TestAddon(object):
     def test_config_missing(self) -> None:
 
         # When running in Anki, `<AnkiMarker>` is not instantiated with a
-        # `config` but reads `config.json` from  the addon directory. This path
-        # is stored as a class variable in `<AnkiMarker>.config_path`. We
+        # `config` but reads `markers.json` from  the addon directory. This
+        # path is stored as a class variable in `<AnkiMarker>.config_path`. We
         # simulate a missing file by monkey-patching `config_path`.
         AnkiMarker.config_path = pathlib.Path("/missing/path/to/styles.json")
 
