@@ -85,8 +85,23 @@ class BaseMarkerExtension(Extension):
             md.inlinePatterns.register(item=item, name=name, priority=0)
 
     def _compile_pattern(self, markup: str) -> str:
-        """ Return a regex that captures text between symmetrical markup.
+        """ Return a regex that captures text between symmetrical markup. """
 
+        # markup:  `~`
+        # `m0` --> `~`
+        # `mf` --> `~`
+        #
+        # markup:  `~~`
+        # `m0` --> `~`
+        # `mf` --> `~~`
+        #
+        # markup:  `~~~`
+        # `m0` --> `~`
+        # `mf` --> `~~~`
+        m0 = re.escape(markup[0])
+        mf = re.escape(markup)
+
+        """
         Select `~~` only if it's *not* preceeded or followed by `~`. This
         captures our opening markup ignoring those that do not have the exact
         markup string length. Therefore this will *only* capture `~~` and never
@@ -105,26 +120,8 @@ class BaseMarkerExtension(Extension):
 
         markup: `~` --> (?<!~)~(?!~)([^~]*?)~(?!~)
         markup: `~~` --> (?<!~)~~(?!~)([^~]*?)~~(?!~)
-        markup: `~~~` --> (?<!~)~~~(?!~)([^~]*?)~~~(?!~)
-
-        via. https://stackoverflow.com/a/51083965
-        """
-
-        # markup: `~`
-        # `m0` --> `~`
-        # `mf` --> `~`
-        #
-        # markup: `~~`
-        # `m0` --> `~`
-        # `mf` --> `~~`
-        #
-        # markup: `~~~`
-        # `m0` --> `~`
-        # `mf` --> `~~~`
-        m0 = re.escape(markup[0])
-        mf = re.escape(markup)
-
-        return fr"(?<!{m0}){mf}(?!{m0})([^{m0}]*?){mf}(?!{m0})"
+        markup: `~~~` --> (?<!~)~~~(?!~)([^~]*?)~~~(?!~) """
+        return fr"(?<!{m0}){mf}(?!{m0})([^{m0}]*?)(?<!{m0}){mf}(?!{m0})"
 
 
 class MarkerExtension(BaseMarkerExtension):
