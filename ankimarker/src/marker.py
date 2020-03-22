@@ -85,26 +85,27 @@ class BaseMarkerExtension(Extension):
             md.inlinePatterns.register(item=item, name=name, priority=0)
 
     def _compile_pattern(self, markup: str) -> str:
-        """ TODO: Document this...
+        """ Return a regex that captures text between symmetrical markup.
 
-        I'm so sorry. This prevents text marked with `~` from having
-        overlapping matches with those with `~~`.
+        Select `~~` only if it's *not* preceeded or followed by `~`. This
+        captures our opening markup ignoring those that do not have the exact
+        markup string length. Therefore this will *only* capture `~~` and never
+        capture `~~` inside `~~~`.
+
+            (?<!~)~~(?!~)
+
+        Lazy select anything that is not `~`. This captures the marked text.
+
+            ([^~]*?)
+
+        Again select `~~` only if it's *not* preceeded or followed by `~`. This
+        is identical to the first part.
+
+            (?<!~)~~(?!~)
 
         markup: `~` --> (?<!~)~(?!~)([^~]*?)~(?!~)
         markup: `~~` --> (?<!~)~~(?!~)([^~]*?)~~(?!~)
         markup: `~~~` --> (?<!~)~~~(?!~)([^~]*?)~~~(?!~)
-
-        `(?<!~)`
-
-        `~~`
-
-        `(?!~)`
-
-        `([^~]*?)`
-
-        `~~`
-
-        `(?!~)`
 
         via. https://stackoverflow.com/a/51083965
         """

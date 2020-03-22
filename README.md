@@ -1,8 +1,5 @@
 # anki-marker
 
-<!-- TODO: Document example... -->
-
-
 ``` css
 
 /* [addon-dir]/user_files/markers.css */

@@ -2,8 +2,6 @@ import sys
 
 from .src import AnkiMarker, errors
 
-# TODO: Maybe write a script that copies dependancies (`markdown`) into the
-# src folder. This also has to be accessed corectly via the path.
 
 try:
     addon = AnkiMarker()
