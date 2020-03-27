@@ -1,2 +1,2 @@
 TODO: Document example in `README.md`
-TODO: Write a script that copies `markdown` dependancy into the `src` folder.
+TODO: `Python-Markdown` is included in Anki. Double check this.
