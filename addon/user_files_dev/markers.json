@@ -1,0 +1,20 @@
+{
+    "parent-classnames": [],
+    "styles": [
+        {
+            "name": "Accent",
+            "markup": "*",
+            "classnames": ["accent"]
+        },
+        {
+            "name": "Bold",
+            "markup": "**",
+            "classnames": ["bold"]
+        },
+        {
+            "name": "Highlight",
+            "markup": "==",
+            "classnames": ["highlight"]
+        }
+    ]
+}

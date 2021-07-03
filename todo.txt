@@ -1,2 +1,0 @@
-TODO: Document example in `README.md`
-TODO: `Python-Markdown` is included in Anki. Double check this.

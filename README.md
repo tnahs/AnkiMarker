@@ -1,15 +1,22 @@
 # anki-marker
 
-``` css
+## Installation
 
+Download `*.ankiaddon` from `./bundle`
+
+## Usage
+
+TODO
+
+``` css
 /* [addon-dir]/user_files/markers.css */
 
 anki-marker .highlight {
 
     /**
-    * highlight
-    * ==abc==
-    * <span class="highlight">abc</span>
+    * name:     highlight
+    * syntax:   ==abc==
+    * html:     <span class="highlight">abc</span>
     */
 
     color: hsla(35, 100%, 45%, 1.0);
@@ -20,9 +27,8 @@ anki-marker .highlight {
 }
 ```
 
-``` python
-
-# [addon-dir]/user_files/markers.json
+``` json
+// [addon-dir]/user_files/markers.json
 
 {
     "parent-classnames": [],
@@ -34,4 +40,10 @@ anki-marker .highlight {
         },
     ]
 }
+```
+
+## Development
+
+```shell
+export ANKI_ADDON_DEV=True
 ```

@@ -1,0 +1,17 @@
+/**
+* User defined CSS
+*/
+
+anki-marker .marker {
+  /**
+    * accent
+    * *abc*
+    * <span class="accent">abc</span>
+    */
+
+  color: hsla(230, 60%, 70%, 1);
+  font-style: unset;
+  font-weight: 400;
+  text-decoration: unset;
+  background-color: unset;
+}
