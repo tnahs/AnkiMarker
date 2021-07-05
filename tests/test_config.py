@@ -1,3 +1,5 @@
+from typing import List
+
 import pytest
 
 from addon.src.config import Config
@@ -5,32 +7,32 @@ from addon.src.helpers import ConfigError, Key
 from addon.src.style import Style
 
 
-def test__valid_config(styles: list[Style]) -> None:
+def test__valid_config(styles: List[Style]) -> None:
 
     data = {
-        Key.PARENT_CLASSNAMES: [
+        Key.PARENT_CLASSES: [
             "parent-style",
         ],
         Key.STYLES: [
             {
                 Key.NAME: "Style0",
                 Key.MARKUP: "*",
-                Key.CLASSNAMES: ["style0"],
+                Key.CLASSES: ["style0"],
             },
             {
                 Key.NAME: "Style1",
                 Key.MARKUP: "**",
-                Key.CLASSNAMES: ["style1"],
+                Key.CLASSES: ["style1"],
             },
             {
                 Key.NAME: "Style2",
                 Key.MARKUP: "~",
-                Key.CLASSNAMES: ["style2"],
+                Key.CLASSES: ["style2"],
             },
             {
                 Key.NAME: "Style3",
                 Key.MARKUP: "~~",
-                Key.CLASSNAMES: ["style3"],
+                Key.CLASSES: ["style3"],
             },
         ],
     }
@@ -47,7 +49,7 @@ def test__missing_name() -> None:
             {
                 # MISSING NAME
                 Key.MARKUP: "*",
-                Key.CLASSNAMES: ["style"],
+                Key.CLASSES: ["style"],
             },
         ]
     }
@@ -63,7 +65,7 @@ def test__missing_markup() -> None:
             {
                 Key.NAME: "Style",
                 # MISSING MARKUP
-                Key.CLASSNAMES: ["style"],
+                Key.CLASSES: ["style"],
             },
         ]
     }
@@ -72,14 +74,14 @@ def test__missing_markup() -> None:
         Config(data=data)
 
 
-def test__missing_classnames() -> None:
+def test__missing_classes() -> None:
 
     data = {
         Key.STYLES: [
             {
                 Key.NAME: "Style",
                 Key.MARKUP: "*",
-                # MISSING CLASSNAMES
+                # MISSING CLASSES
             },
         ]
     }
@@ -95,7 +97,7 @@ def test__markup_blank() -> None:
             {
                 Key.NAME: "Style",
                 Key.MARKUP: "",
-                Key.CLASSNAMES: ["style"],
+                Key.CLASSES: ["style"],
             },
         ]
     }
@@ -111,7 +113,7 @@ def test__invalid_markup() -> None:
             {
                 Key.NAME: "Style",
                 Key.MARKUP: "&",
-                Key.CLASSNAMES: ["style"],
+                Key.CLASSES: ["style"],
             },
         ]
     }
@@ -127,7 +129,7 @@ def test__asymmetric_markup() -> None:
             {
                 Key.NAME: "Style",
                 Key.MARKUP: "=~",
-                Key.CLASSNAMES: ["style"],
+                Key.CLASSES: ["style"],
             },
         ]
     }

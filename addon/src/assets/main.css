@@ -1,0 +1,12 @@
+/**
+* Default AnkiMarker CSS
+*
+* This file is always loaded. But loaded before the 'markers.css' file. To
+* overwrite 'marker', re-define it in [addon-dir]/user_files/markers.css.
+*/
+
+marker {
+  margin: 0;
+  padding: 0;
+  display: inline;
+}

@@ -5,21 +5,22 @@ import anki
 import anki.hooks
 import aqt
 import aqt.gui_hooks
+import aqt.utils
 from anki.template import TemplateRenderContext
 from aqt.clayout import CardLayout
 from aqt.editor import EditorWebView
+from aqt.previewer import BrowserPreviewer
 from aqt.reviewer import Reviewer
 from aqt.webview import WebContent
 from PyQt5.QtWidgets import QMenu
 
 from .config import Config
-from .helpers import Defaults, E_Filter
+from .helpers import Defaults, E_Filter, InvalidMarkup
 from .marker import Marker
 
 
 class AnkiMarker:
     def __init__(self) -> None:
-
         self.__config = Config()
         self.__marker = Marker(styles=self.config.styles)
 
@@ -33,7 +34,7 @@ class AnkiMarker:
 
         def hook__append_css(web_content: WebContent, context: Optional[Any]) -> None:
 
-            if not isinstance(context, (CardLayout, Reviewer)):
+            if not isinstance(context, (CardLayout, BrowserPreviewer, Reviewer)):
                 return
 
             # Add-ons may expose their own web assets by utilizing
@@ -66,13 +67,20 @@ class AnkiMarker:
             filter_name: str,
             context: TemplateRenderContext,
         ) -> str:
-            """Fields prepended with "marked" --> {{marked:FieldName}} will be
+            """Fields prepended with 'marked' --> {{marked:FieldName}} will be
             filtered through this function."""
 
             if filter_name != E_Filter.MARKED.value:
                 return field_text
 
-            return self.__marker.render(string=field_text)
+            try:
+                return self.__marker.render(string=field_text)
+            except InvalidMarkup:
+                aqt.utils.showInfo(
+                    # TODO: Better error message.
+                    f"{Defaults.NAME}: Field '{field_name}' contains invalid markup."
+                )
+                return field_text
 
         def hook__unmark_field(
             field_text: str,
@@ -80,13 +88,20 @@ class AnkiMarker:
             filter_name: str,
             context: TemplateRenderContext,
         ) -> str:
-            """Fields prepended with "unmarked" --> {{unmarked:FieldName}} will
+            """Fields prepended with 'unmarked' --> {{unmarked:FieldName}} will
             be filtered through this function."""
 
             if filter_name != E_Filter.UNMARKED.value:
                 return field_text
 
-            return self.__marker.unmark(string=field_text)
+            try:
+                return self.__marker.unmark(string=field_text)
+            except InvalidMarkup:
+                aqt.utils.showInfo(
+                    # TODO: Better error message.
+                    f"{Defaults.NAME}: Field '{field_name}' contains invalid markup."
+                )
+                return field_text
 
         anki.hooks.field_filter.append(hook__render_field)
         anki.hooks.field_filter.append(hook__unmark_field)
@@ -98,38 +113,49 @@ class AnkiMarker:
             menu.addSeparator()
             menu.addAction(
                 "Unmark",
-                functools.partial(action__unmark, editor=editor),
+                functools.partial(
+                    action_context__unmark,
+                    editor=editor,
+                ),
             )
 
             for style in self.config.styles:
 
                 menu.addAction(
                     style.name,
-                    functools.partial(action__mark, editor=editor, markup=style.markup),
+                    functools.partial(
+                        action_context__mark,
+                        editor=editor,
+                        markup=style.markup,
+                    ),
                 )
 
         aqt.gui_hooks.editor_will_show_context_menu.append(hook__add_context_menu)
 
-        def action__unmark(editor: EditorWebView) -> None:
+        def action_context__mark(editor: EditorWebView, markup: str) -> None:
 
-            text = editor.selectedText()
-            text = self.__marker.unmark(string=text)
+            selection = editor.selectedText()
+
+            try:
+                string = self.__marker.mark(string=selection, markup=markup)
+            except InvalidMarkup:
+                # TODO: Better error message.
+                aqt.utils.showInfo("Selection contains invalid markup.")
+                return
+
+            # Replaces the selected string with marked string.
+            editor.eval(f"document.execCommand('inserttext', false, '{string}')")
+
+        def action_context__unmark(editor: EditorWebView) -> None:
+
+            selection = editor.selectedText()
+
+            try:
+                string = self.__marker.unmark(string=selection)
+            except InvalidMarkup:
+                # TODO: Better error message.
+                aqt.utils.showInfo("Selection contains invalid markup.")
+                return
 
             # Replaces the selected text with unmarked string.
-            editor.eval(
-                f"""
-                document.execCommand("inserttext", false, "{text}")
-                """
-            )
-
-        def action__mark(editor: EditorWebView, markup: str) -> None:
-
-            text = editor.selectedText()
-            text = self.__marker.mark(string=text, markup=markup)
-
-            # Replaces the selected text with marked string.
-            editor.eval(
-                f"""
-                document.execCommand("inserttext", false, "{text}")
-                """
-            )
+            editor.eval(f"document.execCommand('inserttext', false, '{string}')")

@@ -2,39 +2,35 @@
 * User defined CSS
 */
 
-:root {
-  --color-accent: hsla(230, 60%, 70%, 1);
-}
-
-anki-marker .accent {
+marker.accent {
   /**
     * accent
     * *abc*
     * <span class="accent">abc</span>
     */
 
-  color: var(--color-accent);
+  color: hsla(230, 60%, 70%, 1);
   font-style: unset;
   font-weight: 400;
   text-decoration: unset;
   background-color: unset;
 }
 
-anki-marker .bold {
+marker.bold {
   /**
     * bold
     * **abc**
     * <span class="bold">abc</span>
     */
 
-  color: var(--color-accent);
+  color: hsla(130, 80%, 60%, 1);
   font-style: unset;
   font-weight: 700;
   text-decoration: unset;
   background-color: unset;
 }
 
-anki-marker .highlight {
+marker.highlight {
   /**
     * highlight
     * ==abc==

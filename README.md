@@ -11,7 +11,7 @@ TODO
 ``` css
 /* [addon-dir]/user_files/markers.css */
 
-anki-marker .highlight {
+marker.highlight {
 
     /**
     * name:     highlight
@@ -31,12 +31,12 @@ anki-marker .highlight {
 // [addon-dir]/user_files/markers.json
 
 {
-    "parent-classnames": [],
+    "parent-classes": [],
     "styles": [
         {
             "name": "Highlight",
             "markup": "==",
-            "classname": "highlight"
+            "classes": ["highlight"]
         },
     ]
 }
@@ -45,5 +45,5 @@ anki-marker .highlight {
 ## Development
 
 ```shell
-export ANKI_ADDON_DEV=True
+export ANKI_ADDON_DEVELOPMENT=True
 ```

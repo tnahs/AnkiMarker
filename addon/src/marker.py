@@ -1,150 +1,61 @@
 import re
-from typing import Iterable
-from xml.etree import ElementTree
-from xml.etree.ElementTree import Element
+from typing import Iterable, NoReturn, Pattern, Union
 
-from markdown import Markdown
-from markdown.blockprocessors import BlockProcessor
-from markdown.extensions import Extension
-from markdown.inlinepatterns import HTML_RE, HtmlInlineProcessor, Pattern
+from markdown.inlinepatterns import HTML_RE
 
-from .helpers import Key, Tag
+from .helpers import InvalidMarkup, Key
 from .style import Style
+
+
+RE_ALL = re.compile(rf"(?P<{Key.CONTENTS}>.*)", flags=re.DOTALL)
 
 
 class Marker:
     def __init__(self, styles: Iterable[Style]) -> None:
-
-        self.__marker = Markdown(
-            extensions=[MarkerExtension(styles=styles)],
-        )
-        self.__unmarker = Markdown(
-            extensions=[UnMarkerExtension(styles=styles)],
-        )
+        self.__styles = styles
 
     def render(self, string: str) -> str:
-        return self.__marker.convert(source=string)
-
-    def mark(self, string: str, markup: str) -> str:
-        return f"{markup}{string}{markup}"
+        return self.__render(string=string)
 
     def unmark(self, string) -> str:
+        return self.__unmark(string=string)
 
-        string = self.__unmarker.convert(source=string)
-        string = string.replace(Tag.CLOSE + Tag.OPEN, "\n")
-        string = string.replace(Tag.OPEN, "")
-        string = string.replace(Tag.CLOSE, "")
+    def mark(self, string: str, markup: str) -> Union[NoReturn, str]:
+
+        self.__check_input(pattern=RE_ALL, string=string)
+
+        return f"{markup}{string}{markup}"
+
+    def __render(self, string: str) -> Union[NoReturn, str]:
+
+        for style in self.__styles:
+
+            self.__check_input(pattern=style.pattern, string=string)
+
+            string = re.sub(
+                pattern=style.pattern, repl=style.repl_render, string=string
+            )
 
         return string
 
+    def __unmark(self, string: str) -> Union[NoReturn, str]:
 
-class ParagraphBlockProcessor(BlockProcessor):
-    # https://python-markdown.github.io/extensions/api/#blockprocessors
+        for style in self.__styles:
 
-    def test(self, parent: Element, block: str) -> bool:
-        return True
+            self.__check_input(pattern=style.pattern, string=string)
 
-    def run(self, parent: Element, blocks: list[str]) -> None:
-
-        block = blocks.pop(0)
-
-        if not block.strip():
-            return
-
-        paragraph = ElementTree.SubElement(parent, Tag.NAME)
-        paragraph.text = block
-
-
-class BaseMarkerExtension(Extension):
-    def __init__(self, styles: Iterable[Style]) -> None:
-        self.__styles = styles
-
-    @property
-    def styles(self) -> Iterable[Style]:
-        return self.__styles
-
-    def setup_markdown(self, markdown: Markdown) -> None:
-
-        # Deregister all inline patterns.
-
-        for pattern in markdown.inlinePatterns._data.copy():
-            markdown.inlinePatterns.deregister(pattern)
-
-        # Register single 'html' inline pattern.
-
-        markdown.inlinePatterns.register(
-            item=HtmlInlineProcessor(HTML_RE, markdown),
-            name="html",
-            priority=90,
-        )
-
-        # Deregister all default block processor.
-
-        for processor in markdown.parser.blockprocessors._data.copy():
-            markdown.parser.blockprocessors.deregister(processor)
-
-        # Register single paragraph block processor.
-
-        markdown.parser.blockprocessors.register(
-            item=ParagraphBlockProcessor(markdown.parser),
-            name="paragraph",
-            priority=0,
-        )
-
-
-class MarkerExtension(BaseMarkerExtension):
-    def extendMarkdown(self, markdown: Markdown) -> None:
-
-        self.setup_markdown(markdown=markdown)
-
-        for style in self.styles:
-
-            markdown.inlinePatterns.register(
-                item=PatternMarker(
-                    regex=style.regex,
-                    classnames=style.classnames,
-                ),
-                name=style.name,
-                priority=0,
+            string = re.sub(
+                pattern=style.pattern, repl=style.repl_unmark, string=string
             )
 
+        return string
 
-class PatternMarker(Pattern):
-    def __init__(self, regex: str, classnames: list[str]) -> None:
-        super().__init__(regex)
+    def __check_input(self, pattern: Pattern, string: str) -> Union[NoReturn, None]:
 
-        self.__classnames = classnames
+        for match in re.finditer(pattern, string):
 
-    @property
-    def classnames(self) -> str:
-        return " ".join(self.__classnames)
+            if re.search(HTML_RE, match[Key.CONTENTS]):
+                raise InvalidMarkup
 
-    def handleMatch(self, match: re.Match) -> ElementTree.Element:
-
-        element = ElementTree.Element("span")
-        element.text = match[Key.CONTENTS]
-        element.set("class", self.classnames)
-
-        return element
-
-
-class UnMarkerExtension(BaseMarkerExtension):
-    def extendMarkdown(self, markdown: Markdown) -> None:
-
-        self.setup_markdown(markdown=markdown)
-
-        for style in self.styles:
-
-            markdown.inlinePatterns.register(
-                item=PatternUnMarker(regex=style.regex),
-                name=style.name,
-                priority=0,
-            )
-
-
-class PatternUnMarker(Pattern):
-    def __init__(self, regex: str) -> None:
-        super().__init__(regex)
-
-    def handleMatch(self, match: re.Match) -> str:
-        return match[Key.CONTENTS]
+            if re.search(r"\n", match[Key.CONTENTS]):
+                raise InvalidMarkup

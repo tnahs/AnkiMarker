@@ -1,16 +1,35 @@
 import re
 from dataclasses import dataclass
+from typing import List
+
+from .helpers import Key
 
 
 @dataclass
 class Style:
     name: str
     markup: str
-    classnames: list[str]
+    classes: List[str]
 
     @property
-    def regex(self) -> str:
-        """Return a regex that captures text between symmetrical markup."""
+    def tag_open(self) -> str:
+        return f"<{Key.MARKER} class=\"{' '.join(self.classes)}\">"
+
+    @property
+    def tag_close(self) -> str:
+        return f"</{Key.MARKER}>"
+
+    @property
+    def repl_render(self) -> str:
+        return fr"{self.tag_open}\g<{Key.CONTENTS}>{self.tag_close}"
+
+    @property
+    def repl_unmark(self) -> str:
+        return fr"\g<{Key.CONTENTS}>"
+
+    @property
+    def pattern(self) -> re.Pattern:
+        """Return a regex pattern that captures between symmetrical markup."""
 
         # markup:  '~'
         # 'm0' --> '~'
@@ -46,4 +65,14 @@ class Style:
         markup: '~~' --> (?<!~)~~(?!~)([^~]*?)~~(?!~)
         markup: '~~~' --> (?<!~)~~~(?!~)([^~]*?)~~~(?!~)
         """
-        return fr"(?<!{m0}){mf}(?!{m0})(?P<contents>[^{m0}]*?)(?<!{m0}){mf}(?!{m0})"
+        return re.compile(
+            fr"""
+                #
+                (?<!{m0}){mf}(?!{m0})
+                #
+                (?P<{Key.CONTENTS}>[^{m0}]*?)
+                #
+                (?<!{m0}){mf}(?!{m0})
+            """,
+            flags=re.VERBOSE,
+        )

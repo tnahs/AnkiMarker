@@ -1,15 +1,14 @@
 import json
-from typing import Iterator, Optional
-
-from addon.src.style import Style
+from typing import Iterator, List, Optional, Tuple
 
 from .helpers import ConfigError, Defaults, Key
+from .style import Style
 
 
 class Config:
 
     __data: dict = {}
-    __styles: list[Style] = []
+    __styles: List[Style] = []
 
     def __init__(self, data: Optional[dict] = None) -> None:
 
@@ -18,7 +17,7 @@ class Config:
         self.__build_styles()
 
     @property
-    def styles(self) -> list[Style]:
+    def styles(self) -> List[Style]:
         return self.__styles
 
     def __load(self) -> dict:
@@ -39,11 +38,11 @@ class Config:
 
     def __validate(self) -> None:
 
-        for (name, markup, classnames) in self.__iter_styles():
+        for (name, markup, classes) in self.__iter_styles():
 
-            if not all([name, markup, len(classnames)]):
+            if not all([name, markup, len(classes)]):
                 raise ConfigError(
-                    f"All styles require: '{Key.NAME}' '{Key.MARKUP}' and '{Key.CLASSNAMES}'."
+                    f"All styles require: '{Key.NAME}' '{Key.MARKUP}' and '{Key.CLASSES}'."
                 )
 
             if markup != markup[0] * len(markup):
@@ -60,26 +59,26 @@ class Config:
 
         self.__styles *= 0
 
-        for (name, markup, classnames) in self.__iter_styles():
+        for (name, markup, classes) in self.__iter_styles():
 
             self.__styles.append(
                 Style(
                     name=name,
                     markup=markup,
-                    classnames=classnames,
+                    classes=classes,
                 ),
             )
 
-    def __iter_styles(self) -> Iterator[tuple[str, str, list[str]]]:
+    def __iter_styles(self) -> Iterator[Tuple[str, str, List[str]]]:
 
         styles = self.__data.get(Key.STYLES, [])
 
-        parent_classnames = self.__data.get(Key.PARENT_CLASSNAMES, [])
+        parent_classes = self.__data.get(Key.PARENT_CLASSES, [])
 
         for style in styles:
 
             name = style.get(Key.NAME, "")
             markup = style.get(Key.MARKUP, "")
-            classnames = style.get(Key.CLASSNAMES, [])
+            classes = style.get(Key.CLASSES, [])
 
-            yield (name, markup, [*parent_classnames, *classnames])
+            yield (name, markup, [*parent_classes, *classes])

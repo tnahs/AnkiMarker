@@ -1,4 +1,6 @@
-from addon.src.helpers import Tag
+import pytest
+
+from addon.src.helpers import InvalidMarkup, Key
 from addon.src.marker import Marker
 
 
@@ -8,12 +10,11 @@ def test__valid_basic(marker: Marker) -> None:
     unmarked = " Style0 Style1 Style2 Style3 "
 
     rendered = (
-        f"{Tag.OPEN}"
-        f' <span class="parent-style style0">Style0</span>'
-        f' <span class="parent-style style1">Style1</span>'
-        f' <span class="parent-style style2">Style2</span>'
-        f' <span class="parent-style style3">Style3</span>'
-        f" {Tag.CLOSE}"
+        f' <{Key.MARKER} class="parent-style style0">Style0</{Key.MARKER}>'
+        f' <{Key.MARKER} class="parent-style style1">Style1</{Key.MARKER}>'
+        f' <{Key.MARKER} class="parent-style style2">Style2</{Key.MARKER}>'
+        f' <{Key.MARKER} class="parent-style style3">Style3</{Key.MARKER}>'
+        f" "
     )
 
     assert rendered == marker.render(string=marked)
@@ -22,15 +23,14 @@ def test__valid_basic(marker: Marker) -> None:
 
 def test__valid_with_tags(marker: Marker) -> None:
 
-    marked = " *ABC* <div><p><strong>abc</strong></p></div> *ABC* "
-    unmarked = " ABC <div><p><strong>abc</strong></p></div> ABC "
+    marked = " *ABC* <div><p><strong>ABC</strong></p></div> *ABC* "
+    unmarked = " ABC <div><p><strong>ABC</strong></p></div> ABC "
 
     rendered = (
-        f"{Tag.OPEN}"
-        f' <span class="parent-style style0">ABC</span>'
-        f" <div><p><strong>abc</strong></p></div>"
-        f' <span class="parent-style style0">ABC</span>'
-        f" {Tag.CLOSE}"
+        f' <{Key.MARKER} class="parent-style style0">ABC</{Key.MARKER}>'
+        f" <div><p><strong>ABC</strong></p></div>"
+        f' <{Key.MARKER} class="parent-style style0">ABC</{Key.MARKER}>'
+        f" "
     )
 
     assert rendered == marker.render(string=marked)
@@ -43,43 +43,74 @@ def test__valid_with_entities(marker: Marker) -> None:
     unmarked = " ABC &amp; &#38; &#x26; ABC "
 
     rendered = (
-        f"{Tag.OPEN}"
-        f' <span class="parent-style style0">ABC</span>'
-        f' <span class="parent-style style0">&amp;</span>'
-        f' <span class="parent-style style0">&#38;</span>'
-        f' <span class="parent-style style0">&#x26;</span>'
-        f' <span class="parent-style style0">ABC</span>'
-        f" {Tag.CLOSE}"
+        f' <{Key.MARKER} class="parent-style style0">ABC</{Key.MARKER}>'
+        f' <{Key.MARKER} class="parent-style style0">&amp;</{Key.MARKER}>'
+        f' <{Key.MARKER} class="parent-style style0">&#38;</{Key.MARKER}>'
+        f' <{Key.MARKER} class="parent-style style0">&#x26;</{Key.MARKER}>'
+        f' <{Key.MARKER} class="parent-style style0">ABC</{Key.MARKER}>'
+        f" "
     )
 
     assert rendered == marker.render(string=marked)
     assert unmarked == marker.unmark(string=marked)
 
 
-def test__valid_with_linebreak1(marker: Marker) -> None:
+def test__valid_with_linebreak(marker: Marker) -> None:
 
     marked = " *ABC*\n*ABC* "
     unmarked = " ABC\nABC "
 
     rendered = (
-        f"{Tag.OPEN}"
-        f' <span class="parent-style style0">ABC</span>'
-        f'\n<span class="parent-style style0">ABC</span>'
-        f" {Tag.CLOSE}"
+        f' <{Key.MARKER} class="parent-style style0">ABC</{Key.MARKER}>'
+        f'\n<{Key.MARKER} class="parent-style style0">ABC</{Key.MARKER}>'
+        f" "
     )
 
     assert rendered == marker.render(string=marked)
     assert unmarked == marker.unmark(string=marked)
 
 
-def test__valid_with_linebreak2(marker: Marker) -> None:
+def test__valid_with_paragraph1(marker: Marker) -> None:
 
-    marked = " *ABC\nABC* "
-    unmarked = " ABC\nABC "
+    marked = " start <p>*ABC*</p> end "
+    unmarked = " start <p>ABC</p> end "
+
+    rendered = f' start <p><{Key.MARKER} class="parent-style style0">ABC</{Key.MARKER}></p> end '
+
+    assert rendered == marker.render(string=marked)
+    assert unmarked == marker.unmark(string=marked)
+
+
+def test__valid_with_paragraph2(marker: Marker) -> None:
+
+    marked = "<p>ABC *ABC* ABC</p>"
+    unmarked = "<p>ABC ABC ABC</p>"
 
     rendered = (
-        f'{Tag.OPEN} <span class="parent-style style0">ABC\nABC</span> {Tag.CLOSE}'
+        f'<p>ABC <{Key.MARKER} class="parent-style style0">ABC</{Key.MARKER}> ABC</p>'
     )
 
     assert rendered == marker.render(string=marked)
     assert unmarked == marker.unmark(string=marked)
+
+
+def test__invalid_with_linebreak(marker: Marker) -> None:
+
+    marked = " *ABC\nABC* "
+
+    with pytest.raises(InvalidMarkup):
+        marker.render(string=marked)
+
+    with pytest.raises(InvalidMarkup):
+        marker.unmark(string=marked)
+
+
+def test__invalid_with_paragraph(marker: Marker) -> None:
+
+    marked = "<p>ABC *ABC ABC</p><p>ABC ABC* ABC</p>"
+
+    with pytest.raises(InvalidMarkup):
+        marker.render(string=marked)
+
+    with pytest.raises(InvalidMarkup):
+        marker.unmark(string=marked)
