@@ -7,7 +7,7 @@ from .style import Style
 
 class Config:
 
-    __data: dict = {}
+    __data = {}
     __styles: List[Style] = []
 
     def __init__(self, data: Optional[dict] = None) -> None:
@@ -15,10 +15,6 @@ class Config:
         self.__data = self.__load() if data is None else data
         self.__validate()
         self.__build_styles()
-
-    @property
-    def styles(self) -> List[Style]:
-        return self.__styles
 
     def __load(self) -> dict:
 
@@ -82,3 +78,7 @@ class Config:
             classes = style.get(Key.CLASSES, [])
 
             yield (name, markup, [*parent_classes, *classes])
+
+    @property
+    def styles(self) -> List[Style]:
+        return self.__styles

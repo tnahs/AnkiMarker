@@ -1,2 +1,4 @@
+# TODOs
+
 - Documentation
-- Make styles hot-reloadable
+- Make style config reloadable

@@ -14,18 +14,6 @@ class Marker:
     def __init__(self, styles: Iterable[Style]) -> None:
         self.__styles = styles
 
-    def render(self, string: str) -> str:
-        return self.__render(string=string)
-
-    def unmark(self, string) -> str:
-        return self.__unmark(string=string)
-
-    def mark(self, string: str, markup: str) -> Union[NoReturn, str]:
-
-        self.__check_input(pattern=RE_ALL, string=string)
-
-        return f"{markup}{string}{markup}"
-
     def __render(self, string: str) -> Union[NoReturn, str]:
 
         for style in self.__styles:
@@ -59,3 +47,15 @@ class Marker:
 
             if re.search(r"\n", match[Key.CONTENTS]):
                 raise InvalidMarkup
+
+    def render(self, string: str) -> str:
+        return self.__render(string=string)
+
+    def unmark(self, string) -> str:
+        return self.__unmark(string=string)
+
+    def mark(self, string: str, markup: str) -> Union[NoReturn, str]:
+
+        self.__check_input(pattern=RE_ALL, string=string)
+
+        return f"{markup}{string}{markup}"

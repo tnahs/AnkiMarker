@@ -24,10 +24,6 @@ class AnkiMarker:
         self.__config = Config()
         self.__marker = Marker(styles=self.config.styles)
 
-    @property
-    def config(self) -> Config:
-        return self.__config
-
     def setup(self) -> None:
 
         # Append CSS Stylesheets
@@ -61,7 +57,7 @@ class AnkiMarker:
 
         # Field Filters
 
-        def hook__render_field(
+        def __hook__render_field(
             field_text: str,
             field_name: str,
             filter_name: str,
@@ -76,13 +72,9 @@ class AnkiMarker:
             try:
                 return self.__marker.render(string=field_text)
             except InvalidMarkup:
-                aqt.utils.showInfo(
-                    # TODO: Better error message.
-                    f"{Defaults.NAME}: Field '{field_name}' contains invalid markup."
-                )
-                return field_text
+                return f"{Defaults.NAME}: Field contains invalid markup."
 
-        def hook__unmark_field(
+        def __hook__unmark_field(
             field_text: str,
             field_name: str,
             filter_name: str,
@@ -97,24 +89,20 @@ class AnkiMarker:
             try:
                 return self.__marker.unmark(string=field_text)
             except InvalidMarkup:
-                aqt.utils.showInfo(
-                    # TODO: Better error message.
-                    f"{Defaults.NAME}: Field '{field_name}' contains invalid markup."
-                )
-                return field_text
+                return f"{Defaults.NAME}: Field contains invalid markup."
 
-        anki.hooks.field_filter.append(hook__render_field)
-        anki.hooks.field_filter.append(hook__unmark_field)
+        anki.hooks.field_filter.append(__hook__render_field)
+        anki.hooks.field_filter.append(__hook__unmark_field)
 
         # Context Menus
 
-        def hook__add_context_menu(editor: EditorWebView, menu: QMenu) -> None:
+        def __hook__append_context_menu(editor: EditorWebView, menu: QMenu) -> None:
 
             menu.addSeparator()
             menu.addAction(
                 "Unmark",
                 functools.partial(
-                    action_context__unmark,
+                    __context_action__unmark,
                     editor=editor,
                 ),
             )
@@ -124,38 +112,44 @@ class AnkiMarker:
                 menu.addAction(
                     style.name,
                     functools.partial(
-                        action_context__mark,
+                        __context_action__mark,
                         editor=editor,
                         markup=style.markup,
                     ),
                 )
 
-        aqt.gui_hooks.editor_will_show_context_menu.append(hook__add_context_menu)
+        aqt.gui_hooks.editor_will_show_context_menu.append(__hook__append_context_menu)
 
-        def action_context__mark(editor: EditorWebView, markup: str) -> None:
+        def __context_action__mark(editor: EditorWebView, markup: str) -> None:
 
             selection = editor.selectedText()
 
             try:
                 string = self.__marker.mark(string=selection, markup=markup)
             except InvalidMarkup:
-                # TODO: Better error message.
-                aqt.utils.showInfo("Selection contains invalid markup.")
+                aqt.utils.showInfo(
+                    f"{Defaults.NAME}: Selection cannot contain line breaks or html elements."
+                )
                 return
 
             # Replaces the selected string with marked string.
             editor.eval(f"document.execCommand('inserttext', false, '{string}')")
 
-        def action_context__unmark(editor: EditorWebView) -> None:
+        def __context_action__unmark(editor: EditorWebView) -> None:
 
             selection = editor.selectedText()
 
             try:
                 string = self.__marker.unmark(string=selection)
             except InvalidMarkup:
-                # TODO: Better error message.
-                aqt.utils.showInfo("Selection contains invalid markup.")
+                aqt.utils.showInfo(
+                    f"{Defaults.NAME}: Selection cannot contain line breaks or html elements."
+                )
                 return
 
             # Replaces the selected text with unmarked string.
             editor.eval(f"document.execCommand('inserttext', false, '{string}')")
+
+    @property
+    def config(self) -> Config:
+        return self.__config
