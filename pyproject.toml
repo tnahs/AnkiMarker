@@ -1,22 +1,9 @@
-[tool.poetry]
-name = "anki-marker"
+[project]
+name = "AnkiMarker"
+description = "Add custom Markdown-like highlighting to your Anki cards!"
 version = "0.2.0"
-description = ""
-authors = []
-
-[tool.poetry.dependencies]
-python = "^3.9"
-
-[tool.poetry.dev-dependencies]
-aqt = "^2.1.44"
-pytest = "^6.2.4"
-black = "^21.6b0"
-isort = "^5.9.1"
+authors = [{ name = "Shant Ergenian", email = "shaaant@pm.me" }]
 
 [tool.isort]
 profile = "black"
 lines_after_imports = 2
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
