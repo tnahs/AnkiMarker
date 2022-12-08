@@ -1,7 +1,10 @@
 __version__ = "0.2.0"
 
-from .src.addon import AnkiMarker
+import sys
 
 
-addon = AnkiMarker()
-addon.setup()
+if "pytest" not in sys.modules:
+    from .src.addon import AnkiMarker
+
+    addon = AnkiMarker()
+    addon.setup()
