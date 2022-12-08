@@ -1,3 +1,4 @@
 aqt[qt6]
 black
 isort
+pytest
