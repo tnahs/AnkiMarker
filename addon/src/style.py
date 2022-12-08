@@ -1,6 +1,5 @@
 import re
 from dataclasses import dataclass
-from typing import List
 
 from .helpers import Key
 
@@ -9,7 +8,7 @@ from .helpers import Key
 class Style:
     name: str
     markup: str
-    classes: List[str]
+    classes: list[str]
 
     @property
     def tag_open(self) -> str:
@@ -21,11 +20,11 @@ class Style:
 
     @property
     def repl_render(self) -> str:
-        return fr"{self.tag_open}\g<{Key.CONTENTS}>{self.tag_close}"
+        return rf"{self.tag_open}\g<{Key.CONTENTS}>{self.tag_close}"
 
     @property
     def repl_unmark(self) -> str:
-        return fr"\g<{Key.CONTENTS}>"
+        return rf"\g<{Key.CONTENTS}>"
 
     @property
     def pattern(self) -> re.Pattern:
@@ -66,7 +65,7 @@ class Style:
         markup: '~~~' --> (?<!~)~~~(?!~)([^~]*?)~~~(?!~)
         """
         return re.compile(
-            fr"""
+            rf"""
                 #
                 (?<!{m0}){mf}(?!{m0})
                 #

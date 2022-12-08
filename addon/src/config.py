@@ -1,5 +1,5 @@
 import json
-from typing import Iterator, List, Optional, Tuple
+from collections.abc import Iterator
 
 from .helpers import ConfigError, Defaults, Key
 from .style import Style
@@ -8,9 +8,9 @@ from .style import Style
 class Config:
 
     __data = {}
-    __styles: List[Style] = []
+    __styles: list[Style] = []
 
-    def __init__(self, data: Optional[dict] = None) -> None:
+    def __init__(self, data: dict | None = None) -> None:
 
         self.__data = self.__load() if data is None else data
         self.__validate()
@@ -19,7 +19,7 @@ class Config:
     def __load(self) -> dict:
 
         try:
-            with open(Defaults.MARKERS_JSON, "r") as f:
+            with open(Defaults.MARKERS_JSON) as f:
                 data = json.load(f)
         except FileNotFoundError:
             raise ConfigError(
@@ -38,17 +38,17 @@ class Config:
 
             if not all([name, markup, len(classes)]):
                 raise ConfigError(
-                    f"All styles require: '{Key.NAME}' '{Key.MARKUP}' and '{Key.CLASSES}'."
+                    f"Styles require: '{Key.NAME}' '{Key.MARKUP}' and '{Key.CLASSES}'."
                 )
 
             if markup != markup[0] * len(markup):
                 raise ConfigError(
-                    f"Style '{Key.MARKUP}' can only contain one type of character."
+                    f"A style '{Key.MARKUP}' can only contain one type of character."
                 )
 
             if markup[0] in Defaults.INVALID_CHARACTERS:
                 raise ConfigError(
-                    f"Style '{Key.MARKUP}' contains invalid characters '{markup[0]}'"
+                    f"A style '{Key.MARKUP}' contains invalid characters '{markup[0]}'"
                 )
 
     def __build_styles(self) -> None:
@@ -65,7 +65,7 @@ class Config:
                 ),
             )
 
-    def __iter_styles(self) -> Iterator[Tuple[str, str, List[str]]]:
+    def __iter_styles(self) -> Iterator[tuple[str, str, list[str]]]:
 
         styles = self.__data.get(Key.STYLES, [])
 
@@ -80,5 +80,5 @@ class Config:
             yield (name, markup, [*parent_classes, *classes])
 
     @property
-    def styles(self) -> List[Style]:
+    def styles(self) -> list[Style]:
         return self.__styles

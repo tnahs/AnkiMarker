@@ -1,5 +1,7 @@
 import re
-from typing import Iterable, NoReturn, Pattern, Union
+from collections.abc import Iterable
+from re import Pattern
+from typing import NoReturn
 
 from markdown.inlinepatterns import HTML_RE
 
@@ -14,7 +16,7 @@ class Marker:
     def __init__(self, styles: Iterable[Style]) -> None:
         self.__styles = styles
 
-    def __render(self, string: str) -> Union[NoReturn, str]:
+    def __render(self, string: str) -> str | NoReturn:
 
         for style in self.__styles:
 
@@ -26,7 +28,7 @@ class Marker:
 
         return string
 
-    def __unmark(self, string: str) -> Union[NoReturn, str]:
+    def __unmark(self, string: str) -> str | NoReturn:
 
         for style in self.__styles:
 
@@ -38,7 +40,7 @@ class Marker:
 
         return string
 
-    def __check_input(self, pattern: Pattern, string: str) -> Union[NoReturn, None]:
+    def __check_input(self, pattern: Pattern, string: str) -> None | NoReturn:
 
         for match in re.finditer(pattern, string):
 
@@ -54,7 +56,7 @@ class Marker:
     def unmark(self, string) -> str:
         return self.__unmark(string=string)
 
-    def mark(self, string: str, markup: str) -> Union[NoReturn, str]:
+    def mark(self, string: str, markup: str) -> str | NoReturn:
 
         self.__check_input(pattern=RE_ALL, string=string)
 

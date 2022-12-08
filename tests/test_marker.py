@@ -75,7 +75,11 @@ def test__valid_with_paragraph1(marker: Marker) -> None:
     marked = " start <p>*ABC*</p> end "
     unmarked = " start <p>ABC</p> end "
 
-    rendered = f' start <p><{Key.MARKER} class="parent-style style0">ABC</{Key.MARKER}></p> end '
+    rendered = (
+        f" start <p>"
+        f'<{Key.MARKER} class="parent-style style0">ABC</{Key.MARKER}>'
+        f"</p> end "
+    )
 
     assert rendered == marker.render(string=marked)
     assert unmarked == marker.unmark(string=marked)

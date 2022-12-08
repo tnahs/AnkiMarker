@@ -1,5 +1,3 @@
-from typing import List
-
 import pytest
 
 from addon.src.config import Config
@@ -7,7 +5,7 @@ from addon.src.helpers import ConfigError, Key
 from addon.src.style import Style
 
 
-def test__valid_config(styles: List[Style]) -> None:
+def test__valid_config(styles: list[Style]) -> None:
 
     data = {
         Key.PARENT_CLASSES: [

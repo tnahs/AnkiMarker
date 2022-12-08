@@ -7,12 +7,12 @@ import aqt
 import aqt.gui_hooks
 import aqt.utils
 from anki.template import TemplateRenderContext
+from aqt.browser.previewer import BrowserPreviewer
 from aqt.clayout import CardLayout
 from aqt.editor import EditorWebView
-from aqt.previewer import BrowserPreviewer
+from aqt.qt.qt6 import QMenu
 from aqt.reviewer import Reviewer
 from aqt.webview import WebContent
-from PyQt5.QtWidgets import QMenu
 
 from .config import Config
 from .helpers import Defaults, E_Filter, InvalidMarkup
@@ -128,7 +128,7 @@ class AnkiMarker:
                 string = self.__marker.mark(string=selection, markup=markup)
             except InvalidMarkup:
                 aqt.utils.showInfo(
-                    f"{Defaults.NAME}: Selection cannot contain line breaks or html elements."
+                    f"{Defaults.NAME}: Selection cannot contain line breaks or HTML."
                 )
                 return
 
@@ -143,7 +143,7 @@ class AnkiMarker:
                 string = self.__marker.unmark(string=selection)
             except InvalidMarkup:
                 aqt.utils.showInfo(
-                    f"{Defaults.NAME}: Selection cannot contain line breaks or html elements."
+                    f"{Defaults.NAME}: Selection cannot contain line breaks or HTML."
                 )
                 return
 

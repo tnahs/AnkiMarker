@@ -1,5 +1,3 @@
-from typing import List
-
 import pytest
 
 from addon.src.marker import Marker
@@ -7,7 +5,7 @@ from addon.src.style import Style
 
 
 @pytest.fixture(scope="session")
-def styles() -> List[Style]:
+def styles() -> list[Style]:
     return [
         Style(
             name="Style0",
@@ -33,5 +31,5 @@ def styles() -> List[Style]:
 
 
 @pytest.fixture(scope="session")
-def marker(styles: List[Style]) -> Marker:
+def marker(styles: list[Style]) -> Marker:
     return Marker(styles=styles)
