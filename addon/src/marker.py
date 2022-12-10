@@ -1,65 +1,109 @@
-from __future__ import annotations
-
 import re
-from collections.abc import Iterable
-from re import Pattern
-from typing import NoReturn
+from dataclasses import dataclass
 
-from markdown.inlinepatterns import HTML_RE
-
-from .helpers import InvalidMarkup, Key
-from .style import Style
+from .helpers import Key
 
 
-RE_ALL = re.compile(rf"(?P<{Key.CONTENTS}>.*)", flags=re.DOTALL)
-
-
+@dataclass
 class Marker:
-    def __init__(self, styles: Iterable[Style]) -> None:
-        self.__styles = styles
+    """A class representing a marker style.
 
-    def __render(self, string: str) -> str | NoReturn:
+    Used to generate its respective HTML tags, replacement strings for rendering and
+    unmarking text and its regex pattern for capturing text that matches its markup.
+    """
 
-        for style in self.__styles:
+    name: str
+    markup: str
+    classes: list[str]
 
-            self.__check_input(pattern=style.pattern, string=string)
+    @property
+    def tag_open(self) -> str:
+        """Returns the marker's opening tag. For example:
 
-            string = re.sub(
-                pattern=style.pattern, repl=style.repl_render, string=string
-            )
+        <marker class="my-markers highlight">
+        """
 
-        return string
+        return f"<{Key.MARKER} class=\"{' '.join(self.classes)}\">"
 
-    def __unmark(self, string: str) -> str | NoReturn:
+    @property
+    def tag_close(self) -> str:
+        """Returns the marker's closing tag. For example:
 
-        for style in self.__styles:
+        <marker>
+        """
 
-            self.__check_input(pattern=style.pattern, string=string)
+        return f"</{Key.MARKER}>"
 
-            string = re.sub(
-                pattern=style.pattern, repl=style.repl_unmark, string=string
-            )
+    @property
+    def replacement_render(self) -> str:
+        r"""Returns the marker's replacement string used when rendering. For
+        example:
 
-        return string
+        <marker class="my-markers highlight">\g<contents><marker>
 
-    def __check_input(self, pattern: Pattern, string: str) -> None | NoReturn:
+        Note that '\g<NAME>' is a back-reference to the capture group 'NAME'. So this
+        string will place the contents of the 'contents' capture group inside the
+        marker's opening and closing tags.
+        """
 
-        for match in re.finditer(pattern, string):
+        return rf"{self.tag_open}\g<{Key.CONTENTS}>{self.tag_close}"
 
-            if re.search(HTML_RE, match[Key.CONTENTS]):
-                raise InvalidMarkup
+    @property
+    def replacement_unmark(self) -> str:
+        r"""Returns the marker's replacement string used then unmarking. For
+        example:
 
-            if re.search(r"\n", match[Key.CONTENTS]):
-                raise InvalidMarkup
+        \g<contents>
 
-    def render(self, string: str) -> str:
-        return self.__render(string=string)
+        Note that '\g<NAME>' is a back-reference to the capture group 'NAME'. So this
+        string will extract the contents of the 'contents' capture group.
+        """
 
-    def unmark(self, string) -> str:
-        return self.__unmark(string=string)
+        return rf"\g<{Key.CONTENTS}>"
 
-    def mark(self, string: str, markup: str) -> str | NoReturn:
+    @property
+    def pattern(self) -> re.Pattern:
+        """Returns a regex pattern that captures the text between a symmetrical markup
+        syntax e.g. '~~string~~' would yield 'string'."""
 
-        self.__check_input(pattern=RE_ALL, string=string)
+        # markup:  '~'
+        # 'm0' --> '~'
+        # 'mf' --> '~'
+        #
+        # markup:  '~~'
+        # 'm0' --> '~'
+        # 'mf' --> '~~'
+        #
+        # markup:  '~~~'
+        # 'm0' --> '~'
+        # 'mf' --> '~~~'
+        m0 = re.escape(self.markup[0])
+        mf = re.escape(self.markup)
 
-        return f"{markup}{string}{markup}"
+        # 1. Select '~~' only if it's *not* preceded or followed by '~'. This captures
+        # the opening markup ignoring those that do not have the exact markup string
+        # length. Therefore this will *only* capture '~~' and never capture '~~' inside
+        # '~~~'.
+        #
+        #     (?<!~)~~(?!~)
+        #
+        # 2. Lazy select anything that is not '~'. This captures the marked text.
+        #
+        #     ([^~]*?)
+        #
+        # 3. Again select '~~' only if it's *not* preceded or followed by '~'. This is
+        # identical to the first part.
+        #
+        #     (?<!~)~~(?!~)
+        #
+        # markup: '~'   --> (?<!~)~(?!~)([^~]*?)~(?!~)
+        # markup: '~~'  --> (?<!~)~~(?!~)([^~]*?)~~(?!~)
+        # markup: '~~~' --> (?<!~)~~~(?!~)([^~]*?)~~~(?!~)
+        return re.compile(
+            rf"""
+                (?<!{m0}){mf}(?!{m0})
+                (?P<{Key.CONTENTS}>[^{m0}]*?)
+                (?<!{m0}){mf}(?!{m0})
+            """,
+            flags=re.VERBOSE,
+        )

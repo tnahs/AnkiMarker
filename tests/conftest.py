@@ -1,35 +1,35 @@
 import pytest
 
 from addon.src.marker import Marker
-from addon.src.style import Style
+from addon.src.processor import Processor
 
 
 @pytest.fixture(scope="session")
-def styles() -> list[Style]:
+def markers() -> list[Marker]:
     return [
-        Style(
-            name="Style0",
+        Marker(
+            name="Marker0",
             markup="*",
-            classes=["parent-style", "style0"],
+            classes=["parent-marker", "marker0"],
         ),
-        Style(
-            name="Style1",
+        Marker(
+            name="Marker1",
             markup="**",
-            classes=["parent-style", "style1"],
+            classes=["parent-marker", "marker1"],
         ),
-        Style(
-            name="Style2",
+        Marker(
+            name="Marker2",
             markup="~",
-            classes=["parent-style", "style2"],
+            classes=["parent-marker", "marker2"],
         ),
-        Style(
-            name="Style3",
+        Marker(
+            name="Marker3",
             markup="~~",
-            classes=["parent-style", "style3"],
+            classes=["parent-marker", "marker3"],
         ),
     ]
 
 
 @pytest.fixture(scope="session")
-def marker(styles: list[Style]) -> Marker:
-    return Marker(styles=styles)
+def marker(markers: list[Marker]) -> Processor:
+    return Processor(markers=markers)

@@ -4,21 +4,44 @@ import json
 from collections.abc import Iterator
 
 from .helpers import ConfigError, Defaults, Key
-from .style import Style
+from .marker import Marker
 
 
 class Config:
+    """A class used to store the add-on's configuration.
 
-    __data = {}
-    __styles: list[Style] = []
+    During testing, the `data` argument can be supplied to bypass loading the
+    configuration from disk.
+
+    The data structure is as follows:
+
+    {
+        "parent-classes": ["my-markers"],
+        "markers": [
+            {
+                "name": "Highlight",
+                "markup": "==",
+                "classes": ["highlight"]
+            },
+            ...
+        ]
+    }
+    """
+
+    _data: dict = {}
+    _markers: list[Marker] = []
 
     def __init__(self, data: dict | None = None) -> None:
+        self._data = self._load() if data is None else data
+        self._validate()
+        self._build_markers()
 
-        self.__data = self.__load() if data is None else data
-        self.__validate()
-        self.__build_styles()
+    @property
+    def markers(self) -> list[Marker]:
+        return self._markers
 
-    def __load(self) -> dict:
+    def _load(self) -> dict:
+        """Loads the add-on's configuration from disk."""
 
         try:
             with open(Defaults.MARKERS_JSON) as f:
@@ -34,53 +57,54 @@ class Config:
 
         return data
 
-    def __validate(self) -> None:
+    def _validate(self) -> None:
+        """Validates the add-on's configuration."""
 
-        for (name, markup, classes) in self.__iter_styles():
+        for (name, markup, classes) in self._iter_raw_config():
 
             if not all([name, markup, len(classes)]):
                 raise ConfigError(
-                    f"Styles require: '{Key.NAME}' '{Key.MARKUP}' and '{Key.CLASSES}'."
+                    f"Markerd require: '{Key.NAME}' '{Key.MARKUP}' and '{Key.CLASSES}'."
                 )
 
             if markup != markup[0] * len(markup):
                 raise ConfigError(
-                    f"A style '{Key.MARKUP}' can only contain one type of character."
+                    f"A marker's '{Key.MARKUP}' can only contain one type of character."
                 )
 
             if markup[0] in Defaults.INVALID_CHARACTERS:
                 raise ConfigError(
-                    f"A style '{Key.MARKUP}' contains invalid characters '{markup[0]}'"
+                    f"Marker '{name}' contains invalid characters '{markup[0]}'"
                 )
 
-    def __build_styles(self) -> None:
+    def _build_markers(self) -> None:
+        """Builds a list of `Marker`s from the raw config data."""
 
-        self.__styles *= 0
+        self._markers *= 0
 
-        for (name, markup, classes) in self.__iter_styles():
+        for (name, markup, classes) in self._iter_raw_config():
 
-            self.__styles.append(
-                Style(
+            self._markers.append(
+                Marker(
                     name=name,
                     markup=markup,
                     classes=classes,
                 ),
             )
 
-    def __iter_styles(self) -> Iterator[tuple[str, str, list[str]]]:
+    def _iter_raw_config(self) -> Iterator[tuple[str, str, list[str]]]:
+        """Iterates through the raw config data and returns a tuple for each marker
+        containing the name, its markup and a list of its classes."""
 
-        styles = self.__data.get(Key.STYLES, [])
+        parent_classes = self._data.get(Key.PARENT_CLASSES, [])
 
-        parent_classes = self.__data.get(Key.PARENT_CLASSES, [])
+        markers = self._data.get(Key.MARKERS, [])
 
-        for style in styles:
+        for marker in markers:
 
-            name = style.get(Key.NAME, "")
-            markup = style.get(Key.MARKUP, "")
-            classes = style.get(Key.CLASSES, [])
+            name = marker.get(Key.NAME, "")
+            markup = marker.get(Key.MARKUP, "")
+            classes = marker.get(Key.CLASSES, [])
 
+            # ("Highlight", "==", ["my-markers", "highlight"])
             yield (name, markup, [*parent_classes, *classes])
-
-    @property
-    def styles(self) -> list[Style]:
-        return self.__styles

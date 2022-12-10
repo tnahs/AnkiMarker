@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import functools
-from typing import Any, Optional
 
 import anki
 import anki.hooks
@@ -17,36 +16,45 @@ from aqt.reviewer import Reviewer
 from aqt.webview import WebContent
 
 from .config import Config
-from .helpers import Defaults, E_Filter, InvalidMarkup
-from .marker import Marker
+from .helpers import Defaults, InvalidMarkup, Key, escape_quotes, show_info
+from .processor import Processor
 
 
 class AnkiMarker:
     def __init__(self) -> None:
-        self.__config = Config()
-        self.__marker = Marker(styles=self.config.styles)
+        self._config = Config()
+        self._processor = Processor(markers=self._config.markers)
 
     def setup(self) -> None:
 
+        if aqt.mw is None:
+            return
+
+        # Add-ons may expose their own web assets by utilizing
+        # aqt.addons.AddonManager.setWebExports(). Web exports registered in this
+        # manner may then be accessed under the `/_addons` subpath.
+        #
+        # E.g., to allow access to a `my-addon.js` and `my-addon.css` residing in a
+        # "web" subfolder in your add-on package, first register the corresponding
+        # web export:
+        #
+        # > from aqt import mw
+        # > mw.addonManager.setWebExports(__name__, r"web/.*(css|js)")
+
+        aqt.mw.addonManager.setWebExports(__name__, r".+\.css")
+
         # Append CSS Stylesheets
 
-        def hook__append_css(web_content: WebContent, context: Optional[Any]) -> None:
+        # The following functions are nested to prevent the need for declaring `self` as
+        # the first argument in order to maintain the correct function signature while
+        # still being able to access `self`.
 
+        def hook__append_css(web_content: WebContent, context: object | None) -> None:
+            """Appends marker CSS to web views."""
+
+            # The context can be from any of these three web views.
             if not isinstance(context, (CardLayout, BrowserPreviewer, Reviewer)):
                 return
-
-            # Add-ons may expose their own web assets by utilizing
-            # aqt.addons.AddonManager.setWebExports(). Web exports registered
-            # in this manner may then be accessed under the `/_addons` subpath.
-            #
-            # E.g., to allow access to a `my-addon.js` and `my-addon.css` residing
-            # in a "web" subfolder in your add-on package, first register the
-            # corresponding web export:
-            #
-            # > from aqt import mw
-            # > mw.addonManager.setWebExports(__name__, r"web/.*(css|js)")
-
-            aqt.mw.addonManager.setWebExports(__name__, r".+\.css")  # type: ignore
 
             web_content.css.extend(
                 [
@@ -59,99 +67,100 @@ class AnkiMarker:
 
         # Field Filters
 
-        def __hook__render_field(
+        def hook__render_field(
             field_text: str,
             field_name: str,
             filter_name: str,
             context: TemplateRenderContext,
         ) -> str:
-            """Fields prepended with 'marked' --> {{marked:FieldName}} will be
+            """Fields prepended with 'marked' i.e. {{marked:FieldName}} will be filtered
+            through this function."""
+
+            if filter_name != Key.MARKED:
+                return field_text
+
+            try:
+                return self._processor.render(string=field_text)
+            except InvalidMarkup:
+                return f"{Defaults.NAME}: Field contains invalid markup."
+
+        def hook__unmark_field(
+            field_text: str,
+            field_name: str,
+            filter_name: str,
+            context: TemplateRenderContext,
+        ) -> str:
+            """Fields prepended with 'unmarked' i.e. {{unmarked:FieldName}} will be
             filtered through this function."""
 
-            if filter_name != E_Filter.MARKED.value:
+            if filter_name != Key.UNMARKED:
                 return field_text
 
             try:
-                return self.__marker.render(string=field_text)
+                return self._processor.unmark(string=field_text)
             except InvalidMarkup:
                 return f"{Defaults.NAME}: Field contains invalid markup."
 
-        def __hook__unmark_field(
-            field_text: str,
-            field_name: str,
-            filter_name: str,
-            context: TemplateRenderContext,
-        ) -> str:
-            """Fields prepended with 'unmarked' --> {{unmarked:FieldName}} will
-            be filtered through this function."""
-
-            if filter_name != E_Filter.UNMARKED.value:
-                return field_text
-
-            try:
-                return self.__marker.unmark(string=field_text)
-            except InvalidMarkup:
-                return f"{Defaults.NAME}: Field contains invalid markup."
-
-        anki.hooks.field_filter.append(__hook__render_field)
-        anki.hooks.field_filter.append(__hook__unmark_field)
+        anki.hooks.field_filter.append(hook__render_field)
+        anki.hooks.field_filter.append(hook__unmark_field)
 
         # Context Menus
 
-        def __hook__append_context_menu(editor: EditorWebView, menu: QMenu) -> None:
+        def hook__append_context_menu(editor: EditorWebView, menu: QMenu) -> None:
+            """Appends marker actions to the editor context-menu."""
 
             menu.addSeparator()
             menu.addAction(
                 "Unmark",
                 functools.partial(
-                    __context_action__unmark,
+                    context_action__unmark,
                     editor=editor,
                 ),
             )
 
-            for style in self.config.styles:
+            for marker in self._config.markers:
 
                 menu.addAction(
-                    style.name,
+                    marker.name,
                     functools.partial(
-                        __context_action__mark,
+                        context_action__mark,
                         editor=editor,
-                        markup=style.markup,
+                        markup=marker.markup,
                     ),
                 )
 
-        aqt.gui_hooks.editor_will_show_context_menu.append(__hook__append_context_menu)
+        aqt.gui_hooks.editor_will_show_context_menu.append(hook__append_context_menu)
 
-        def __context_action__mark(editor: EditorWebView, markup: str) -> None:
+        def context_action__mark(editor: EditorWebView, markup: str) -> None:
+            """Marks the selected text within the editor."""
 
-            selection = editor.selectedText()
+            string = editor.selectedText()
 
             try:
-                string = self.__marker.mark(string=selection, markup=markup)
+                string = self._processor.mark(string=string, markup=markup)
             except InvalidMarkup:
-                aqt.utils.showInfo(
-                    f"{Defaults.NAME}: Selection cannot contain line breaks or HTML."
-                )
+                show_info("Selection cannot contain line-breaks or HTML.")
                 return
+
+            # Escape quotes to prevent breaking the command string below.
+            string = escape_quotes(string=string)
 
             # Replaces the selected string with marked string.
             editor.eval(f"document.execCommand('inserttext', false, '{string}')")
 
-        def __context_action__unmark(editor: EditorWebView) -> None:
+        def context_action__unmark(editor: EditorWebView) -> None:
+            """Unmarks the selected text within the editor."""
 
-            selection = editor.selectedText()
+            string = editor.selectedText()
 
             try:
-                string = self.__marker.unmark(string=selection)
+                string = self._processor.unmark(string=string)
             except InvalidMarkup:
-                aqt.utils.showInfo(
-                    f"{Defaults.NAME}: Selection cannot contain line breaks or HTML."
-                )
+                show_info("Selection cannot contain line-breaks or HTML.")
                 return
+
+            # Escape quotes to prevent breaking the command string below.
+            string = escape_quotes(string=string)
 
             # Replaces the selected text with unmarked string.
             editor.eval(f"document.execCommand('inserttext', false, '{string}')")
-
-    @property
-    def config(self) -> Config:
-        return self.__config
