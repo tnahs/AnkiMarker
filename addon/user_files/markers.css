@@ -1,17 +1,17 @@
 /**
-* User defined CSS
-*/
+ * User defined CSS
+ */
 
 marker.accent {
-  /**
-    * accent
-    * *abc*
-    * <span class="accent">abc</span>
-    */
+    /**
+     * accent
+     * *abc*
+     * <marker class="accent">abc</marker>
+     */
 
-  color: hsla(230, 60%, 70%, 1);
-  font-style: unset;
-  font-weight: 400;
-  text-decoration: unset;
-  background-color: unset;
+    color: hsla(230, 60%, 70%, 1);
+    font-style: unset;
+    font-weight: 400;
+    text-decoration: unset;
+    background-color: unset;
 }
