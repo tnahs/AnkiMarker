@@ -14,7 +14,7 @@ class Marker:
 
     name: str
     markup: str
-    classes: list[str]
+    classnames: list[str]
 
     @property
     def tag_open(self) -> str:
@@ -23,7 +23,7 @@ class Marker:
         <marker class="my-markers highlight">
         """
 
-        return f"<{Key.MARKER} class=\"{' '.join(self.classes)}\">"
+        return f"<{Key.MARKER} class=\"{' '.join(self.classnames)}\">"
 
     @property
     def tag_close(self) -> str:

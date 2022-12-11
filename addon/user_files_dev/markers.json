@@ -1,26 +1,20 @@
 {
-    "parent-classes": [],
+    "parent-classname": "",
     "markers": [
         {
             "name": "Accent",
             "markup": "*",
-            "classes": [
-                "accent"
-            ]
+            "classname": "accent"
         },
         {
             "name": "Bold",
             "markup": "**",
-            "classes": [
-                "bold"
-            ]
+            "classname": "bold"
         },
         {
             "name": "Highlight",
             "markup": "==",
-            "classes": [
-                "highlight"
-            ]
+            "classname": "highlight"
         }
     ]
 }

@@ -16,12 +16,12 @@ class Config:
     The data structure is as follows:
 
     {
-        "parent-classes": ["my-markers"],
+        "parent-classname": "my-markers",
         "markers": [
             {
                 "name": "Highlight",
                 "markup": "==",
-                "classes": ["highlight"]
+                "classname": "highlight"
             },
             ...
         ]
@@ -60,11 +60,12 @@ class Config:
     def _validate(self) -> None:
         """Validates the add-on's configuration."""
 
-        for (name, markup, classes) in self._iter_raw_config():
+        for (name, markup, _, classname) in self._iter_raw_config():
 
-            if not all([name, markup, len(classes)]):
+            if not all([name, markup, classname]):
                 raise ConfigError(
-                    f"Markerd require: '{Key.NAME}' '{Key.MARKUP}' and '{Key.CLASSES}'."
+                    f"All markers require: '{Key.NAME}', '{Key.MARKUP}' and "
+                    f"'{Key.CLASSNAME}'."
                 )
 
             if markup != markup[0] * len(markup):
@@ -74,7 +75,8 @@ class Config:
 
             if markup[0] in Defaults.INVALID_CHARACTERS:
                 raise ConfigError(
-                    f"Marker '{name}' contains invalid characters '{markup[0]}'"
+                    f"Marker '{name}' contains an invalid character: '{markup[0]}'. "
+                    f"Invalid characters are: {' '.join(Defaults.INVALID_CHARACTERS)}."
                 )
 
     def _build_markers(self) -> None:
@@ -82,29 +84,30 @@ class Config:
 
         self._markers *= 0
 
-        for (name, markup, classes) in self._iter_raw_config():
+        for (name, markup, parent_classname, classname) in self._iter_raw_config():
+
+            classnames = [parent_classname, classname]
+            classnames = list(filter(None, classnames))
 
             self._markers.append(
                 Marker(
                     name=name,
                     markup=markup,
-                    classes=classes,
+                    classnames=classnames,
                 ),
             )
 
-    def _iter_raw_config(self) -> Iterator[tuple[str, str, list[str]]]:
+    def _iter_raw_config(self) -> Iterator[tuple[str, str, str, str]]:
         """Iterates through the raw config data and returns a tuple for each marker
-        containing the name, its markup and a list of its classes."""
+        containing the name, its markup, its parent classname and its classname."""
 
-        parent_classes = self._data.get(Key.PARENT_CLASSES, [])
+        parent_classname = self._data.get(Key.PARENT_CLASSNAME, "")
 
-        markers = self._data.get(Key.MARKERS, [])
-
-        for marker in markers:
+        for marker in self._data.get(Key.MARKERS, []):
 
             name = marker.get(Key.NAME, "")
             markup = marker.get(Key.MARKUP, "")
-            classes = marker.get(Key.CLASSES, [])
+            classname = marker.get(Key.CLASSNAME, "")
 
-            # ("Highlight", "==", ["my-markers", "highlight"])
-            yield (name, markup, [*parent_classes, *classes])
+            # ("Highlight", "==", "my-markers", "highlight")
+            yield (name, markup, parent_classname, classname)

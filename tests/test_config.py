@@ -7,29 +7,27 @@ from addon.src.marker import Marker
 
 def test__valid_config(markers: list[Marker]) -> None:
     data = {
-        Key.PARENT_CLASSES: [
-            "parent-marker",
-        ],
+        Key.PARENT_CLASSNAME: "parent-marker",
         Key.MARKERS: [
             {
                 Key.NAME: "Marker0",
                 Key.MARKUP: "*",
-                Key.CLASSES: ["marker0"],
+                Key.CLASSNAME: "marker0",
             },
             {
                 Key.NAME: "Marker1",
                 Key.MARKUP: "**",
-                Key.CLASSES: ["marker1"],
+                Key.CLASSNAME: "marker1",
             },
             {
                 Key.NAME: "Marker2",
                 Key.MARKUP: "~",
-                Key.CLASSES: ["marker2"],
+                Key.CLASSNAME: "marker2",
             },
             {
                 Key.NAME: "Marker3",
                 Key.MARKUP: "~~",
-                Key.CLASSES: ["marker3"],
+                Key.CLASSNAME: "marker3",
             },
         ],
     }
@@ -45,7 +43,7 @@ def test__missing_name() -> None:
             {
                 # MISSING NAME
                 Key.MARKUP: "*",
-                Key.CLASSES: ["marker"],
+                Key.CLASSNAME: "marker",
             },
         ]
     }
@@ -60,7 +58,7 @@ def test__missing_markup() -> None:
             {
                 Key.NAME: "Marker",
                 # MISSING MARKUP
-                Key.CLASSES: ["marker"],
+                Key.CLASSNAME: "marker",
             },
         ]
     }
@@ -69,13 +67,13 @@ def test__missing_markup() -> None:
         Config(data=data)
 
 
-def test__missing_classes() -> None:
+def test__missing_classname() -> None:
     data = {
         Key.MARKERS: [
             {
                 Key.NAME: "Marker",
                 Key.MARKUP: "*",
-                # MISSING CLASSES
+                # MISSING CLASSNAME
             },
         ]
     }
@@ -90,7 +88,7 @@ def test__markup_blank() -> None:
             {
                 Key.NAME: "Marker",
                 Key.MARKUP: "",
-                Key.CLASSES: ["marker"],
+                Key.CLASSNAME: "marker",
             },
         ]
     }
@@ -105,7 +103,7 @@ def test__invalid_markup() -> None:
             {
                 Key.NAME: "Marker",
                 Key.MARKUP: "&",
-                Key.CLASSES: ["marker"],
+                Key.CLASSNAME: "marker",
             },
         ]
     }
@@ -120,7 +118,7 @@ def test__asymmetric_markup() -> None:
             {
                 Key.NAME: "Marker",
                 Key.MARKUP: "=~",
-                Key.CLASSES: ["marker"],
+                Key.CLASSNAME: "marker",
             },
         ]
     }

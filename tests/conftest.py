@@ -10,22 +10,22 @@ def markers() -> list[Marker]:
         Marker(
             name="Marker0",
             markup="*",
-            classes=["parent-marker", "marker0"],
+            classnames=["parent-marker", "marker0"],
         ),
         Marker(
             name="Marker1",
             markup="**",
-            classes=["parent-marker", "marker1"],
+            classnames=["parent-marker", "marker1"],
         ),
         Marker(
             name="Marker2",
             markup="~",
-            classes=["parent-marker", "marker2"],
+            classnames=["parent-marker", "marker2"],
         ),
         Marker(
             name="Marker3",
             markup="~~",
-            classes=["parent-marker", "marker3"],
+            classnames=["parent-marker", "marker3"],
         ),
     ]
 

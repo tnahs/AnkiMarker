@@ -44,7 +44,7 @@ class Key:
     """A class defining re-usable strings."""
 
     ASSETS = "assets"
-    CLASSES = "classes"
+    CLASSNAME = "classname"
     CONTENTS = "contents"
     MAIN_CSS = "main.css"
     MARKED = "marked"
@@ -54,7 +54,7 @@ class Key:
     MARKERS_CSS = "markers.css"
     MARKUP = "markup"
     NAME = "name"
-    PARENT_CLASSES = "parent-classes"
+    PARENT_CLASSNAME = "parent-classname"
     SRC = "src"
     UNMARKED = "unmarked"
     USER_FILES = "user_files" if not is_development_mode() else "user_files_dev"

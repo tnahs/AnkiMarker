@@ -1,12 +1,10 @@
 {
-    "parent-classes": [],
+    "parent-classname": "",
     "markers": [
         {
             "name": "Accent",
             "markup": "*",
-            "classes": [
-                "accent"
-            ]
+            "classname": "accent"
         }
     ]
 }
