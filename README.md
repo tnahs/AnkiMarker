@@ -1,50 +1,74 @@
-<style>
-    mark {
-        padding: 1px 3px;
-        color: hsla(35, 100%, 45%, 1) !important;
-        background: hsla(45, 100%, 75%, 1) !important;
-        border-radius: 3px;
-    }
-</style>
-
 # AnkiMarker
 
-Add custom Markdown-like <mark>highlighting</mark> to your Anki cards!
+Add custom Markdown-like <span style="
+    padding: 1px 3px;
+    color: hsla(35, 100%, 45%, 1);
+    background: hsla(45, 100%, 75%, 1);
+    border-radius: 3px;
+">highlighting</span> to your Anki cards!
 
-<!--
 ## Installation
 
 Download and run the latest [`AnkiMarker.ankiaddon`][releases] release.
--->
 
 ## Usage
 
-```css
-marker.highlight {
-    /**
-    * name:     highlight
-    * syntax:   ==abc==
-    * html:     <span class="highlight">abc</span>
-    */
+Markers are defined in two different files: `markers.json` and `markers.css`.
+The `markers.json` file defines the markers' name, markup and their classes.
+The `markers.css` file defines how the markers' style. Both files can be
+found within the add-on's `user_files` folder:
 
-    color: hsla(35, 100%, 45%, 1);
-    font-style: unset;
-    font-weight: unset;
-    text-decoration: unset;
-    background-color: hsla(45, 100%, 75%, 1);
-}
+```plaintext
+addons21/AnkiMarker
+├── src/
+└── user_files
+    ├── markers.css
+    └── markers.json
 ```
+
+### `markers.json`
+
+The default `markers.json` defines a single marker named `Accent` with a markup
+of `*` and a class name of `accent`. This would convert the string `*abc*` to
+`<marker class="accent">abc</marker>`.
 
 ```json
 {
-    "parent-classes": [],
-    "styles": [
+    "parent-class": "",
+    "markers": [
         {
-            "name": "Highlight",
-            "markup": "==",
-            "classes": ["highlight"]
+            "name": "Accent",
+            "markup": "*",
+            "classname": "accent"
         }
     ]
+}
+```
+
+### `markers.css`
+
+The default `markers.css` file defines the style of the `Accent` marker. To
+properly connect it to its JSON counterpart, we must make sure the `classname`
+is used within the CSS selector. To do so, we can use `marker.accent` or simply
+`.accent` as its CSS selector.
+
+```css
+/**
+ * User defined CSS
+ */
+
+marker.accent {
+    /**
+     * accent
+     * *abc*
+     * <marker class="accent">abc</marker>
+     */
+
+    color: hsla(230, 60%, 70%, 1);
+    font-style: unset;
+    font-weight: 400;
+    text-decoration: unset;
+    background-color: unset;
 }
 ```
 
@@ -99,6 +123,12 @@ marker.highlight {
     export ANKIDEV=1
     export LOGTERM=1
     export DISABLE_QT5_COMPAT=1
+    ```
+
+7. Run Anki from the terminal.
+
+    ```shell
+    anki
     ```
 
 [anki-dev]: https://github.com/ankitects/anki/blob/main/docs/development.md
