@@ -1,11 +1,8 @@
 # AnkiMarker
 
-Add custom Markdown-like <span style="
-    padding: 1px 3px;
-    color: hsla(35, 100%, 45%, 1);
-    background: hsla(45, 100%, 75%, 1);
-    border-radius: 3px;
-">highlighting</span> to your Anki cards!
+Add custom Markdown-like highlighting to your Anki cards!
+
+<!-- TODO: Add example images. -->
 
 ## Installation
 
