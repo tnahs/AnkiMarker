@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterator
+from typing import Any
 
 from .helpers import ConfigError, Defaults, Key
 from .marker import Marker
@@ -28,7 +29,7 @@ class Config:
     }
     """
 
-    _data: dict = {}
+    _data: dict[str, Any] = {}
     _markers: list[Marker] = []
 
     def __init__(self, data: dict | None = None) -> None:
