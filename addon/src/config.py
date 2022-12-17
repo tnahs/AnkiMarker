@@ -48,12 +48,10 @@ class Config:
             with open(Defaults.MARKERS_JSON) as f:
                 data = json.load(f)
         except FileNotFoundError:
-            raise ConfigError(
-                f"Missing {Key.MARKERS_JSON} in {Defaults.MARKERS_JSON.parent}."
-            )
+            raise ConfigError(f"Missing {Key.MARKERS_JSON} in {Defaults.USER_FILES}.")
         except json.JSONDecodeError:
             raise ConfigError(
-                f"Cannot read {Key.MARKERS_JSON} in {Defaults.MARKERS_JSON.parent}."
+                f"Cannot read {Key.MARKERS_JSON} in {Defaults.USER_FILES}."
             )
 
         return data
