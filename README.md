@@ -10,6 +10,8 @@ Download and run the latest [`AnkiMarker.ankiaddon`][releases] release.
 
 ## Usage
 
+### Configuration
+
 Markers are defined in two different files: `markers.json` and `markers.css`.
 The `markers.json` file defines the markers' name, markup and their classes.
 The `markers.css` file defines how the markers' style. Both files can be
@@ -23,7 +25,7 @@ addons21/AnkiMarker
     └── markers.json
 ```
 
-### `markers.json`
+#### `markers.json`
 
 The default `markers.json` defines a single marker named `Accent` with a markup
 of `*` and a class name of `accent`. This would convert the string `*abc*` to
@@ -42,7 +44,7 @@ of `*` and a class name of `accent`. This would convert the string `*abc*` to
 }
 ```
 
-### `markers.css`
+#### `markers.css`
 
 The default `markers.css` file defines the style of the `Accent` marker. To
 properly connect it to its JSON counterpart, we must make sure the `classname`
@@ -68,6 +70,24 @@ marker.accent {
     background-color: unset;
 }
 ```
+
+### Templates and Field Filters
+
+Assuming we have a field named `Expression`, and the `accent` marker defined
+above, we can convert our input string into two different forms, `marked`
+and `unmarked`, by using field filters. A `marked` filter converts the string
+into its HTML equivalent while an `unmarked` filter strips all the markup.
+For example, if we start with the string `Il est *blindé* ce type.`, we can
+have one of three output strings based on the syntax we use when calling the
+`Expression` field
+
+| Filter     | Field Syntax              | Resulting String                                         |
+| ---------- | ------------------------- | -------------------------------------------------------- |
+| -          | `{{Expression}}`          | `Il est *blindé* ce type.`                               |
+| `marked`   | `{{marked:Expression}}`   | `Il est <marker class="accent">blindé</marker> ce type.` |
+| `unmarked` | `{{unmarked:Expression}}` | `Il est blindé ce type.`                                 |
+
+![screenshot-01](./extra/screenshot-01.png)
 
 ## Development
 
