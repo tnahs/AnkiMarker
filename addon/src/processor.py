@@ -26,9 +26,10 @@ class Processor:
         self._markers = markers
 
     def mark(self, string: str, markup: str) -> str | NoReturn:
-        """Surrounds a string with markup.
+        """Surrounds a string with a markup. For example:
 
-        The lazy dog --> ==The lazy dog==
+        The lazy dog
+        ==The lazy dog==
         """
 
         self._validate_string(string=string, pattern=ALL_RE)
@@ -38,7 +39,8 @@ class Processor:
     def unmark(self, string: str) -> str | NoReturn:
         """Strips a marked string of all its markup. For example:
 
-        The ==lazy== dog --> The lazy dog
+        The ==lazy== dog
+        The lazy dog
         """
 
         for marker in self._markers:
@@ -56,7 +58,8 @@ class Processor:
     def render(self, string: str) -> str | NoReturn:
         """Renders a marked string into its HTML eqivalent. For exmaple:
 
-        The ==lazy== dog. --> The <marker style="my-markers highlight">lazy</marker> dog
+        The ==lazy== dog.
+        The <marker style="my-markers highlight">lazy</marker> dog
         """
 
         for marker in self._markers:

@@ -27,8 +27,8 @@ def escape_quotes(string: str) -> str:
 
 
 class ConfigError(Exception):
-    """The exception raised when the addon's configuration has JSON syntax errors,
-    missing keys, invalid markup syntax or invalid markup characters."""
+    """The exception raised when the addon's configuration is missing, has JSON syntax
+    errors, is missing keys, or has other general configuration errors."""
 
     pass
 

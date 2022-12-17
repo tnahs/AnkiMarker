@@ -18,7 +18,7 @@ class Marker:
 
     @property
     def tag_open(self) -> str:
-        """Returns the marker's opening tag. For example:
+        """Returns the opening tag. For example:
 
         <marker class="my-markers highlight">
         """
@@ -27,17 +27,16 @@ class Marker:
 
     @property
     def tag_close(self) -> str:
-        """Returns the marker's closing tag. For example:
+        """Returns the closing tag. For example:
 
-        <marker>
+        </marker>
         """
 
         return f"</{Key.MARKER}>"
 
     @property
     def replacement_render(self) -> str:
-        r"""Returns the marker's replacement string used when rendering. For
-        example:
+        r"""Returns the replacement string used when rendering. For example:
 
         <marker class="my-markers highlight">\g<contents><marker>
 
@@ -50,8 +49,7 @@ class Marker:
 
     @property
     def replacement_unmark(self) -> str:
-        r"""Returns the marker's replacement string used then unmarking. For
-        example:
+        r"""Returns the replacement string used when unmarking. For example:
 
         \g<contents>
 
