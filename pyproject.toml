@@ -1,7 +1,7 @@
 [project]
 name = "AnkiMarker"
 description = "Add custom Markdown-like highlighting to your Anki cards!"
-version = "0.3.0"
+version = "0.3.1"
 authors = [{ name = "Shant Ergenian", email = "shaaant@pm.me" }]
 
 [tool.isort]
