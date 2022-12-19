@@ -2,8 +2,6 @@
 
 Add custom Markdown-like highlighting to your Anki cards!
 
-<!-- TODO: Add example images. -->
-
 ## Installation
 
 Download and run the latest [`AnkiMarker.ankiaddon`][releases] release.
@@ -89,6 +87,10 @@ have one of three output strings based on the syntax we use when calling the
 
 ![screenshot-01](./extra/screenshot-01.png)
 
+## Example Config
+
+An example config can be found at: [tnahs/anki-addon-configs:AnkiMarker][anki-marker-config].
+
 ## Development
 
 1. Install the required `[python-version]`. See the [Anki development][anki-dev]
@@ -148,6 +150,7 @@ have one of three output strings based on the syntax we use when calling the
     anki
     ```
 
+[anki-marker-config]: https://github.com/tnahs/anki-addon-configs/tree/AnkiMarker
 [anki-dev]: https://github.com/ankitects/anki/blob/main/docs/development.md
 [env-var]: https://github.com/ankitects/anki/blob/main/docs/development.md#environmental-variables
 [releases]: https://github.com/tnahs/AnkiMarker/releases
