@@ -26,8 +26,7 @@ class AnkiMarker:
         self._processor = Processor(markers=self._config.markers)
 
     def setup(self) -> None:
-        """Registers the add-on's hooks used to append CSS files, field filters and a
-        context-menu."""
+        """Registers hooks which append CSS files, field filters and a context-menu."""
 
         if aqt.mw is None:
             return
